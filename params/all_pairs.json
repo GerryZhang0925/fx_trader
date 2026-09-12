@@ -1,0 +1,310 @@
+[
+  {
+    "symbol": "EURUSD",
+    "selection": "max train PF among test PF>=1.0 and train DD<=20%",
+    "params": {
+      "length": 35,
+      "ema_len": 200,
+      "atr_len": 14,
+      "atr_mult": 2.0,
+      "swing_len": 5,
+      "stop_buffer_atr": 0.5,
+      "adx_len": 14,
+      "adx_min": 21.0,
+      "atr_median_len": 50,
+      "use_adx_filter": true,
+      "use_atr_filter": false,
+      "partial_frac": 0.5,
+      "partial_r": 1.0,
+      "exit_on_opposite_break": true,
+      "exit_on_ema_flip": false,
+      "take_profit_r": null
+    },
+    "train": {
+      "trades": "195",
+      "win_rate": 0.4564102564102564,
+      "avg_r": 0.0789801756406484,
+      "profit_factor": 1.5481888439970886,
+      "max_drawdown_pct": 4.732321771759997,
+      "sharpe": 0.8502321149324653,
+      "return_pct": 16.342765483885092
+    },
+    "test": {
+      "trades": "154",
+      "win_rate": 0.35714285714285715,
+      "avg_r": 0.002903382521338051,
+      "profit_factor": 1.014529805657566,
+      "max_drawdown_pct": 4.737421069836318,
+      "sharpe": 0.04340897222269667,
+      "return_pct": 0.3279915735424188
+    },
+    "full": {
+      "trades": 371,
+      "win_rate": 0.41778975741239893,
+      "avg_r": 0.04737247107246219,
+      "profit_factor": 1.3215533479352195,
+      "max_drawdown_pct": 4.737421069836271,
+      "sharpe": 0.5427741917122463,
+      "return_pct": 18.737029682613283,
+      "years": 11.663244353182751
+    }
+  },
+  {
+    "symbol": "GBPUSD",
+    "selection": "max train PF among test PF>=1.0 and train DD<=20%",
+    "params": {
+      "length": 60,
+      "ema_len": 200,
+      "atr_len": 14,
+      "atr_mult": 3.0,
+      "swing_len": 5,
+      "stop_buffer_atr": 0.5,
+      "adx_len": 14,
+      "adx_min": 24.0,
+      "atr_median_len": 50,
+      "use_adx_filter": true,
+      "use_atr_filter": true,
+      "partial_frac": 0.5,
+      "partial_r": 1.0,
+      "exit_on_opposite_break": true,
+      "exit_on_ema_flip": false,
+      "take_profit_r": null
+    },
+    "train": {
+      "trades": "91",
+      "win_rate": 0.4725274725274725,
+      "avg_r": 0.08237028467791838,
+      "profit_factor": 1.4630950987310958,
+      "max_drawdown_pct": 7.18591430218117,
+      "sharpe": 0.53921574906097,
+      "return_pct": 7.6401040992891245
+    },
+    "test": {
+      "trades": "65",
+      "win_rate": 0.4153846153846154,
+      "avg_r": 0.057157912091902574,
+      "profit_factor": 1.2781621459227948,
+      "max_drawdown_pct": 4.2253909896751445,
+      "sharpe": 0.3490314307854353,
+      "return_pct": 3.68849031172378
+    },
+    "full": {
+      "trades": 164,
+      "win_rate": 0.43902439024390244,
+      "avg_r": 0.0634842765937779,
+      "profit_factor": 1.3357405661101753,
+      "max_drawdown_pct": 7.18591430218117,
+      "sharpe": 0.40549746190615066,
+      "return_pct": 10.719815557998057,
+      "years": 11.663244353182751
+    }
+  },
+  {
+    "symbol": "USDJPY",
+    "pinned": true,
+    "selection": "max train+test return among test PF>=1.2 (book override of train-PF pick)",
+    "params": {
+      "length": 25,
+      "ema_len": 200,
+      "atr_len": 14,
+      "atr_mult": 1.5,
+      "swing_len": 5,
+      "stop_buffer_atr": 0.5,
+      "adx_len": 14,
+      "adx_min": 15.0,
+      "atr_median_len": 50,
+      "use_adx_filter": true,
+      "use_atr_filter": false,
+      "partial_frac": 0.5,
+      "partial_r": 1.0,
+      "exit_on_opposite_break": true,
+      "exit_on_ema_flip": false,
+      "take_profit_r": null,
+      "remainder_tp_r": null,
+      "be_after_partial": false,
+      "trail_after_partial": false,
+      "target_mode": "none",
+      "vol_size_scale": false
+    },
+    "train": {
+      "trades": 331,
+      "win_rate": 0.4259818731117825,
+      "avg_r": 0.04219728615128363,
+      "profit_factor": 1.346476461768095,
+      "max_drawdown_pct": 4.955231743933199,
+      "sharpe": 0.6127175669907422,
+      "return_pct": 14.633698957717446,
+      "years": 5.9986310746064335
+    },
+    "test": {
+      "trades": 283,
+      "win_rate": 0.4169611307420495,
+      "avg_r": 0.09643760163470948,
+      "profit_factor": 1.848522954186684,
+      "max_drawdown_pct": 2.7145173643829708,
+      "sharpe": 1.2546257456403282,
+      "return_pct": 31.011709886613904,
+      "years": 4.991101984941821
+    },
+    "full": {
+      "trades": 653,
+      "win_rate": 0.41960183767228176,
+      "avg_r": 0.05979058761758712,
+      "profit_factor": 1.5049050302151687,
+      "max_drawdown_pct": 5.460616252166628,
+      "sharpe": 0.8310866693848473,
+      "return_pct": 46.86332526607113,
+      "years": 11.663244353182751
+    }
+  },
+  {
+    "symbol": "AUDUSD",
+    "selection": "max train PF among test PF>=1.0 and train DD<=20%",
+    "params": {
+      "length": 55,
+      "ema_len": 200,
+      "atr_len": 14,
+      "atr_mult": 3.0,
+      "swing_len": 5,
+      "stop_buffer_atr": 0.5,
+      "adx_len": 14,
+      "adx_min": 25.0,
+      "atr_median_len": 50,
+      "use_adx_filter": true,
+      "use_atr_filter": true,
+      "partial_frac": 0.5,
+      "partial_r": 1.0,
+      "exit_on_opposite_break": true,
+      "exit_on_ema_flip": false,
+      "take_profit_r": null
+    },
+    "train": {
+      "trades": "83",
+      "win_rate": 0.39759036144578314,
+      "avg_r": 0.016714646171789364,
+      "profit_factor": 1.0889915925506217,
+      "max_drawdown_pct": 3.0552236815424494,
+      "sharpe": 0.1199227002113941,
+      "return_pct": 1.3012282978183798
+    },
+    "test": {
+      "trades": "51",
+      "win_rate": 0.45098039215686275,
+      "avg_r": 0.014615930833047153,
+      "profit_factor": 1.0662022674693694,
+      "max_drawdown_pct": 3.443952060643164,
+      "sharpe": 0.08637443415201877,
+      "return_pct": 0.6805163281646154
+    },
+    "full": {
+      "trades": 142,
+      "win_rate": 0.4225352112676056,
+      "avg_r": 0.01751014104313683,
+      "profit_factor": 1.0875787144529905,
+      "max_drawdown_pct": 3.44395206064317,
+      "sharpe": 0.11517119949388432,
+      "return_pct": 2.3392923713652314,
+      "years": 11.663244353182751
+    }
+  },
+  {
+    "symbol": "USDCAD",
+    "selection": "max train PF among test PF>=1.0 and train DD<=20%",
+    "params": {
+      "length": 55,
+      "ema_len": 200,
+      "atr_len": 14,
+      "atr_mult": 3.0,
+      "swing_len": 5,
+      "stop_buffer_atr": 0.5,
+      "adx_len": 14,
+      "adx_min": 22.0,
+      "atr_median_len": 50,
+      "use_adx_filter": true,
+      "use_atr_filter": true,
+      "partial_frac": 0.5,
+      "partial_r": 1.0,
+      "exit_on_opposite_break": true,
+      "exit_on_ema_flip": false,
+      "take_profit_r": null
+    },
+    "train": {
+      "trades": "89",
+      "win_rate": 0.5280898876404494,
+      "avg_r": 0.17681545759748896,
+      "profit_factor": 2.1455684246057247,
+      "max_drawdown_pct": 3.1278720466828225,
+      "sharpe": 1.0146931481731247,
+      "return_pct": 16.827288486076377
+    },
+    "test": {
+      "trades": "87",
+      "win_rate": 0.4367816091954023,
+      "avg_r": 0.04599774981552329,
+      "profit_factor": 1.2369194282188378,
+      "max_drawdown_pct": 5.119588430699716,
+      "sharpe": 0.3222040539030696,
+      "return_pct": 3.952700554997479
+    },
+    "full": {
+      "trades": 187,
+      "win_rate": 0.5080213903743316,
+      "avg_r": 0.12778583802188734,
+      "profit_factor": 1.763635212388402,
+      "max_drawdown_pct": 5.119588430699721,
+      "sharpe": 0.7941956000460618,
+      "return_pct": 26.577512496217558,
+      "years": 11.663244353182751
+    }
+  },
+  {
+    "symbol": "NZDUSD",
+    "selection": "max train PF among test PF>=1.0 and train DD<=20%",
+    "params": {
+      "length": 25,
+      "ema_len": 200,
+      "atr_len": 14,
+      "atr_mult": 3.0,
+      "swing_len": 5,
+      "stop_buffer_atr": 0.5,
+      "adx_len": 14,
+      "adx_min": 22.0,
+      "atr_median_len": 50,
+      "use_adx_filter": true,
+      "use_atr_filter": true,
+      "partial_frac": 0.5,
+      "partial_r": 1.0,
+      "exit_on_opposite_break": true,
+      "exit_on_ema_flip": false,
+      "take_profit_r": null
+    },
+    "train": {
+      "trades": "109",
+      "win_rate": 0.5229357798165137,
+      "avg_r": 0.17815404186730818,
+      "profit_factor": 2.1233436715053853,
+      "max_drawdown_pct": 3.465607243912138,
+      "sharpe": 1.1200380395735234,
+      "return_pct": 21.166989054867337
+    },
+    "test": {
+      "trades": "92",
+      "win_rate": 0.44565217391304346,
+      "avg_r": 0.013152580569809386,
+      "profit_factor": 1.0612795376132165,
+      "max_drawdown_pct": 4.337683515915758,
+      "sharpe": 0.10709326338321458,
+      "return_pct": 1.1000765046311756
+    },
+    "full": {
+      "trades": 212,
+      "win_rate": 0.4811320754716981,
+      "avg_r": 0.09999749770092074,
+      "profit_factor": 1.528110228940248,
+      "max_drawdown_pct": 4.337683515915688,
+      "sharpe": 0.683876166426808,
+      "return_pct": 23.173650108656506,
+      "years": 11.663244353182751
+    }
+  }
+]

@@ -1,0 +1,124 @@
+//@version=5
+strategy("EURUSD H4 Donchian Filtered Partial Trail", overlay=true,
+     initial_capital=100000, pyramiding=0, process_orders_on_close=false,
+     commission_type=strategy.commission.cash_per_order, commission_value=0,
+     default_qty_type=strategy.fixed, default_qty_value=1,
+     calc_on_every_tick=false, max_bars_back=5000)
+
+donchLen = input.int(30, "Donchian length")
+emaLen = input.int(200, "Trend EMA")
+atrLen = input.int(14, "ATR length")
+atrMult = input.float(1.5, "ATR trail multiple", step=0.1)
+swingLen = input.int(5, "Swing length")
+stopBuf = input.float(0.5, "Stop buffer ATR")
+adxLen = input.int(14, "ADX length")
+adxMin = input.float(19.0, "ADX minimum")
+atrMedLen = input.int(50, "ATR median lookback")
+useAdx = input.bool(true, "ADX trend filter")
+useAtrF = input.bool(false, "ATR median filter")
+partialPct = input.float(50.0, "Partial close % at 1R", minval=0, maxval=100)
+partialR = input.float(1.0, "Partial R")
+riskPct = input.float(1.0, "Risk % of equity", minval=0.1, step=0.1)
+maxTradesDay = input.int(2, "Max trades per day")
+maxConsecLoss = input.int(3, "Consecutive losses (halt rest of day)")
+maxDailyR = input.float(2.0, "Daily loss R halt")
+exitOppBreak = input.bool(true, "Reverse on opposite break")
+
+emaTrend = ta.ema(close, emaLen)
+donchHi = ta.highest(high, donchLen)[1]
+donchLo = ta.lowest(low, donchLen)[1]
+atrVal = ta.atr(atrLen)
+adxVal = ta.adx(adxLen)
+atrMed = ta.median(atrVal, atrMedLen)
+
+ph = ta.pivothigh(high, swingLen, swingLen)
+pl = ta.pivotlow(low, swingLen, swingLen)
+var float swingHigh = na
+var float swingLow = na
+if not na(ph)
+    swingHigh := ph
+if not na(pl)
+    swingLow := pl
+
+stopLongPx = nz(swingLow, low) - atrVal * stopBuf
+stopShortPx = nz(swingHigh, high) + atrVal * stopBuf
+distLong = math.max(close - stopLongPx, atrVal * 0.35)
+distShort = math.max(stopShortPx - close, atrVal * 0.35)
+
+adxOk = not useAdx or adxVal >= adxMin
+atrOk = not useAtrF or atrVal > atrMed
+longCond = close > donchHi and close > emaTrend and adxOk and atrOk
+shortCond = close < donchLo and close < emaTrend and adxOk and atrOk
+
+var int tradesToday = 0
+var int consecLoss = 0
+var float dailyR = 0.0
+var float lastRiskAmt = na
+var int closedSeen = 0
+var float trailLong = na
+var float trailShort = na
+var float entryStopLong = na
+var float entryStopShort = na
+
+if timeframe.change("D")
+    tradesToday := 0
+    dailyR := 0.0
+    consecLoss := 0
+
+if strategy.closedtrades > closedSeen
+    for i = closedSeen to strategy.closedtrades - 1
+        p = strategy.closedtrades.profit(i)
+        rMult = nz(lastRiskAmt) > 0 ? p / lastRiskAmt : 0.0
+        dailyR += rMult
+        consecLoss := p < 0 ? consecLoss + 1 : 0
+    closedSeen := strategy.closedtrades
+
+halted = consecLoss >= maxConsecLoss or dailyR <= -maxDailyR
+canTrade = tradesToday < maxTradesDay and not halted
+
+if canTrade and strategy.position_size == 0
+    if longCond
+        riskAmt = strategy.equity * riskPct / 100.0
+        qty = distLong > 0 ? riskAmt / distLong : na
+        strategy.entry("Long", strategy.long, qty=qty)
+        lastRiskAmt := riskAmt
+        tradesToday += 1
+        entryStopLong := stopLongPx
+    else if shortCond
+        riskAmt = strategy.equity * riskPct / 100.0
+        qty = distShort > 0 ? riskAmt / distShort : na
+        strategy.entry("Short", strategy.short, qty=qty)
+        lastRiskAmt := riskAmt
+        tradesToday += 1
+        entryStopShort := stopShortPx
+
+if strategy.position_size > 0
+    if strategy.position_size[1] <= 0
+        trailLong := entryStopLong
+    else
+        trailLong := math.max(nz(trailLong, entryStopLong), high - atrVal * atrMult)
+    limit1 = strategy.position_avg_price + (strategy.position_avg_price - entryStopLong) * partialR
+    if partialPct > 0
+        strategy.exit("XL1", from_entry="Long", qty_percent=partialPct, limit=limit1, stop=trailLong)
+    strategy.exit("XL2", from_entry="Long", stop=trailLong)
+
+if strategy.position_size < 0
+    if strategy.position_size[1] >= 0
+        trailShort := entryStopShort
+    else
+        trailShort := math.min(nz(trailShort, entryStopShort), low + atrVal * atrMult)
+    limit1s = strategy.position_avg_price - (entryStopShort - strategy.position_avg_price) * partialR
+    if partialPct > 0
+        strategy.exit("XS1", from_entry="Short", qty_percent=partialPct, limit=limit1s, stop=trailShort)
+    strategy.exit("XS2", from_entry="Short", stop=trailShort)
+
+if strategy.position_size > 0 and exitOppBreak and shortCond
+    strategy.close("Long", comment="opp")
+if strategy.position_size < 0 and exitOppBreak and longCond
+    strategy.close("Short", comment="opp")
+
+plot(emaTrend, "EMA 200", color=color.orange)
+plot(donchHi, "Donchian high[1]", color=color.teal)
+plot(donchLo, "Donchian low[1]", color=color.red)
+plotshape(longCond and canTrade, "Long", shape.triangleup, location.belowbar, color.teal, size=size.tiny)
+plotshape(shortCond and canTrade, "Short", shape.triangledown, location.abovebar, color.red, size=size.tiny)

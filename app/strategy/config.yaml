@@ -1,0 +1,67 @@
+# Price-only Donchian defaults. Live book uses params/*.json when present.
+donchian:
+  length: 30
+  ema_len: 200
+  atr_len: 14
+  atr_mult: 1.5
+  swing_len: 5
+  stop_buffer_atr: 0.5
+  adx_len: 14
+  adx_min: 19.0
+  atr_median_len: 50
+  use_adx_filter: true
+  use_atr_filter: false
+  partial_frac: 0.5
+  partial_r: 1.0
+  exit_on_opposite_break: true
+  exit_on_ema_flip: false
+  take_profit_r: null
+
+ema_atr:
+  fast: 20
+  slow: 50
+  trend: 200
+  atr_len: 14
+  atr_mult: 2.5
+  take_profit_r: 2.0
+
+engulfing:
+  rvol_len: 20
+  rvol_min: 1.2
+  swing_len: 5
+  min_room_r: 1.5
+  take_profit_r: 2.0
+  adx_len: 14
+  adx_range_max: 20.0
+  stop_buffer_atr: 0.1
+
+killzone:
+  london: "07:00-10:00"
+  newyork: "13:00-16:00"
+  timezone: UTC
+  h1_fast: 21
+  h1_slow: 50
+  h1_trend: 200
+  swing_len: 5
+  min_score: 6
+  take_profit_r: 2.0
+  atr_len: 14
+  atr_mult: 1.5
+  use_pdh_pdl: true
+
+confluence:
+  require_killzone: false
+  ranging_adx_max: 20.0
+  donchian_width_pct: 0.012
+
+walkforward:
+  train_years: 3
+  test_years: 1
+  step_years: 1
+
+portfolio:
+  donchian:
+    length: 60
+    atr_mult: 1.5
+    adx_min: 19.0
+    use_atr_filter: true

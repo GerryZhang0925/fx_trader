@@ -1,0 +1,16 @@
+data/*.csv
+data/*.parquet
+data/cache/
+reports/*
+!reports/.gitkeep
+!data/.gitkeep
+params/*_grid.csv
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+.venv/
+venv/
+.env
+.env.*
+*.pyc
+.DS_Store

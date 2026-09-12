@@ -1,0 +1,50 @@
+{
+  "symbol": "NZDUSD",
+  "selection": "max train PF among test PF>=1.0 and train DD<=20%",
+  "params": {
+    "length": 25,
+    "ema_len": 200,
+    "atr_len": 14,
+    "atr_mult": 3.0,
+    "swing_len": 5,
+    "stop_buffer_atr": 0.5,
+    "adx_len": 14,
+    "adx_min": 22.0,
+    "atr_median_len": 50,
+    "use_adx_filter": true,
+    "use_atr_filter": true,
+    "partial_frac": 0.5,
+    "partial_r": 1.0,
+    "exit_on_opposite_break": true,
+    "exit_on_ema_flip": false,
+    "take_profit_r": null
+  },
+  "train": {
+    "trades": "109",
+    "win_rate": 0.5229357798165137,
+    "avg_r": 0.17815404186730818,
+    "profit_factor": 2.1233436715053853,
+    "max_drawdown_pct": 3.465607243912138,
+    "sharpe": 1.1200380395735234,
+    "return_pct": 21.166989054867337
+  },
+  "test": {
+    "trades": "92",
+    "win_rate": 0.44565217391304346,
+    "avg_r": 0.013152580569809386,
+    "profit_factor": 1.0612795376132165,
+    "max_drawdown_pct": 4.337683515915758,
+    "sharpe": 0.10709326338321458,
+    "return_pct": 1.1000765046311756
+  },
+  "full": {
+    "trades": 212,
+    "win_rate": 0.4811320754716981,
+    "avg_r": 0.09999749770092074,
+    "profit_factor": 1.528110228940248,
+    "max_drawdown_pct": 4.337683515915688,
+    "sharpe": 0.683876166426808,
+    "return_pct": 23.173650108656506,
+    "years": 11.663244353182751
+  }
+}

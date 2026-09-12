@@ -1,0 +1,15 @@
+# Display only. No orders.
+webhook:
+  url: null
+  timeout_sec: 5
+  max_attempts: 3
+
+telegram:
+  # Token: TELEGRAM_BOT_TOKEN. Skip send when token or chat_id is empty.
+  chat_id: null
+  timeout_sec: 10
+
+web:
+  host: 127.0.0.1
+  port: 8765
+  dir: www

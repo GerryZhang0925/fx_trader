@@ -1,0 +1,9 @@
+# Orchestration only. Pair list and watch. No broker.
+pairs: [USDCAD, USDJPY, GBPUSD]
+lookback: 8
+lag_sec: 180
+data_dir: data
+params_dir: params
+reports_dir: reports
+outputs: [console, files, telegram, web]
+serve: false

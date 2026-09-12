@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-feed:
+    name: unit-feed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r python/requirements.txt
+      - run: python -m pytest app/feed/tests app/feed/backtest -q
+
+  unit-strategy:
+    name: unit-strategy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r python/requirements.txt
+      - run: python -m pytest app/strategy/tests -q
+
+  unit-account:
+    name: unit-account
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r python/requirements.txt
+      - run: python -m pytest app/account/tests -q
+
+  unit-output:
+    name: unit-output
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r python/requirements.txt
+      - run: python -m pytest app/output/tests app/output/backtest -q
+
+  app-tests:
+    name: app-tests
+    needs: [unit-feed, unit-strategy, unit-account, unit-output]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r python/requirements.txt
+      - run: python -m pytest app/tests app/backtest -q
+
+  gate:
+    name: gate
+    if: always()
+    needs: [unit-feed, unit-strategy, unit-account, unit-output, app-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every prior job to succeed
+        run: |
+          python - <<'PY'
+          import json, os, sys
+          needed = ["unit-feed", "unit-strategy", "unit-account", "unit-output", "app-tests"]
+          raw = os.environ.get("NEEDS_JSON", "{}")
+          needs = json.loads(raw)
+          failed = [name for name in needed if needs.get(name, {}).get("result") != "success"]
+          if failed:
+              print("failed jobs:", ", ".join(failed))
+              sys.exit(1)
+          print("all CI jobs passed")
+          PY
+        env:
+          NEEDS_JSON: ${{ toJson(needs) }}

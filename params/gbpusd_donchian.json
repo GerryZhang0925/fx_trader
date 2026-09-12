@@ -1,0 +1,50 @@
+{
+  "symbol": "GBPUSD",
+  "selection": "max train PF among test PF>=1.0 and train DD<=20%",
+  "params": {
+    "length": 60,
+    "ema_len": 200,
+    "atr_len": 14,
+    "atr_mult": 3.0,
+    "swing_len": 5,
+    "stop_buffer_atr": 0.5,
+    "adx_len": 14,
+    "adx_min": 24.0,
+    "atr_median_len": 50,
+    "use_adx_filter": true,
+    "use_atr_filter": true,
+    "partial_frac": 0.5,
+    "partial_r": 1.0,
+    "exit_on_opposite_break": true,
+    "exit_on_ema_flip": false,
+    "take_profit_r": null
+  },
+  "train": {
+    "trades": "91",
+    "win_rate": 0.4725274725274725,
+    "avg_r": 0.08237028467791838,
+    "profit_factor": 1.4630950987310958,
+    "max_drawdown_pct": 7.18591430218117,
+    "sharpe": 0.53921574906097,
+    "return_pct": 7.6401040992891245
+  },
+  "test": {
+    "trades": "65",
+    "win_rate": 0.4153846153846154,
+    "avg_r": 0.057157912091902574,
+    "profit_factor": 1.2781621459227948,
+    "max_drawdown_pct": 4.2253909896751445,
+    "sharpe": 0.3490314307854353,
+    "return_pct": 3.68849031172378
+  },
+  "full": {
+    "trades": 164,
+    "win_rate": 0.43902439024390244,
+    "avg_r": 0.0634842765937779,
+    "profit_factor": 1.3357405661101753,
+    "max_drawdown_pct": 7.18591430218117,
+    "sharpe": 0.40549746190615066,
+    "return_pct": 10.719815557998057,
+    "years": 11.663244353182751
+  }
+}

@@ -1,0 +1,44 @@
+# Account: equity, spread, daily halt, per-pair risk. Not a broker.
+symbol: EURUSD=X
+initial_equity: 100000.0
+pip_size: 0.0001
+
+cost:
+  spread_pips: 1.0
+  slippage_pips: 0.2
+  commission_per_lot: 0.0
+  lot_size: 100000.0
+
+risk:
+  risk_pct: 1.0
+  max_trades_per_day: 2
+  max_consecutive_losses: 3
+  max_daily_loss_r: 2.0
+
+portfolio:
+  candidates: [USDCAD, USDJPY, GBPUSD]
+  risk_pct_per_pair: 5.5
+  risk_pct_by_pair: {}
+  fixed_book: true
+  min_pair_pf: 1.2
+  exclude_below_pf: 1.0
+  max_corr: 0.7
+  portfolio_min_trades: 600
+  portfolio_sharpe: 0.6
+  portfolio_max_dd: 15.0
+
+upside:
+  core_pairs: [USDCAD, USDJPY, GBPUSD]
+  keep_baseline_exit: true
+  recommended_risk_pct_per_pair: 5.5
+  dd_cap_pct: 15.0
+  half_kelly_pct: 8.4
+  quarter_kelly_pct: 4.2
+
+targets:
+  min_years: 5
+  profit_factor: 1.3
+  max_drawdown_pct: 20.0
+  sharpe: 0.5
+  min_trades: 500
+  preferred_trades_max: 600

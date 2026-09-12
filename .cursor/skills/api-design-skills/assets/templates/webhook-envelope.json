@@ -1,0 +1,12 @@
+{
+  "id": "evt_01JEXAMPLE",
+  "type": "example.changed.v1",
+  "source": "https://api.example.com",
+  "subject": "examples/ex_123",
+  "time": "2026-01-01T00:00:00Z",
+  "dataContentType": "application/json",
+  "data": {
+    "exampleId": "ex_123",
+    "changeType": "updated"
+  }
+}

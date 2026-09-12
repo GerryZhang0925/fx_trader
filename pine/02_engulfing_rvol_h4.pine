@@ -1,0 +1,102 @@
+//@version=5
+strategy("EURUSD H4 Engulfing Rvol Structure", overlay=true,
+     initial_capital=100000, pyramiding=0, process_orders_on_close=false,
+     commission_type=strategy.commission.cash_per_order, commission_value=0,
+     default_qty_type=strategy.fixed, default_qty_value=1,
+     calc_on_every_tick=false, max_bars_back=5000)
+
+// FX volume on TradingView is tick volume, not exchange volume.
+
+rvolLen = input.int(20, "Rvol SMA length")
+rvolMin = input.float(1.2, "Min Rvol", step=0.05)
+swingLen = input.int(5, "Swing pivot length")
+minRoomR = input.float(1.5, "Min room to swing (R)")
+tpR = input.float(2.0, "Take profit R")
+adxLen = input.int(14, "ADX length")
+adxRangeMax = input.float(20.0, "ADX range gate (only trade at or below)")
+requireRange = input.bool(true, "Only when ADX says range")
+trendEmaLen = input.int(200, "Trend EMA")
+atrLen = input.int(14, "ATR length")
+stopBufAtr = input.float(0.1, "Stop buffer ATR")
+riskPct = input.float(1.0, "Risk % of equity", minval=0.1, step=0.1)
+maxTradesDay = input.int(2, "Max trades per day")
+maxConsecLoss = input.int(3, "Consecutive losses halt")
+maxDailyR = input.float(2.0, "Daily loss R halt")
+
+emaTrend = ta.ema(close, trendEmaLen)
+atrVal = ta.atr(atrLen)
+adxVal = ta.adx(adxLen)
+rvol = volume / ta.sma(volume, rvolLen)
+
+bodyTop = math.max(open, close)
+bodyBot = math.min(open, close)
+prevTop = math.max(open[1], close[1])
+prevBot = math.min(open[1], close[1])
+bullEng = close > open and close[1] < open[1] and bodyBot <= prevBot and bodyTop >= prevTop
+bearEng = close < open and close[1] > open[1] and bodyTop >= prevTop and bodyBot <= prevBot
+
+ph = ta.pivothigh(high, swingLen, swingLen)
+pl = ta.pivotlow(low, swingLen, swingLen)
+var float swingHigh = na
+var float swingLow = na
+if not na(ph)
+    swingHigh := ph
+if not na(pl)
+    swingLow := pl
+
+stopLong = math.min(low, low[1]) - atrVal * stopBufAtr
+stopShort = math.max(high, high[1]) + atrVal * stopBufAtr
+distLong = math.max(close - stopLong, atrVal * 0.5)
+distShort = math.max(stopShort - close, atrVal * 0.5)
+roomLong = not na(swingHigh) ? (swingHigh - close) / distLong : 0.0
+roomShort = not na(swingLow) ? (close - swingLow) / distShort : 0.0
+
+rangeOk = not requireRange or adxVal <= adxRangeMax
+longCond = bullEng and rvol >= rvolMin and roomLong >= minRoomR and close > emaTrend and rangeOk
+shortCond = bearEng and rvol >= rvolMin and roomShort >= minRoomR and close < emaTrend and rangeOk
+
+var int tradesToday = 0
+var int consecLoss = 0
+var float dailyR = 0.0
+var float lastRiskAmt = na
+var int closedSeen = 0
+
+if timeframe.change("D")
+    tradesToday := 0
+    dailyR := 0.0
+
+if strategy.closedtrades > closedSeen
+    for i = closedSeen to strategy.closedtrades - 1
+        p = strategy.closedtrades.profit(i)
+        rMult = nz(lastRiskAmt) > 0 ? p / lastRiskAmt : 0.0
+        dailyR += rMult
+        consecLoss := p < 0 ? consecLoss + 1 : 0
+    closedSeen := strategy.closedtrades
+
+halted = consecLoss >= maxConsecLoss or dailyR <= -maxDailyR
+canTrade = tradesToday < maxTradesDay and not halted
+
+if canTrade and strategy.position_size == 0
+    if longCond
+        riskAmt = strategy.equity * riskPct / 100.0
+        qty = distLong > 0 ? riskAmt / distLong : na
+        strategy.entry("Long", strategy.long, qty=qty)
+        strategy.exit("XL", from_entry="Long", stop=stopLong, limit=close + distLong * tpR)
+        lastRiskAmt := riskAmt
+        tradesToday += 1
+    else if shortCond
+        riskAmt = strategy.equity * riskPct / 100.0
+        qty = distShort > 0 ? riskAmt / distShort : na
+        strategy.entry("Short", strategy.short, qty=qty)
+        strategy.exit("XS", from_entry="Short", stop=stopShort, limit=close - distShort * tpR)
+        lastRiskAmt := riskAmt
+        tradesToday += 1
+
+plot(emaTrend, "EMA 200", color=color.orange)
+plot(swingHigh, "Swing high", color=color.teal, style=plot.style_linebr)
+plot(swingLow, "Swing low", color=color.red, style=plot.style_linebr)
+plotshape(longCond and canTrade, "Long", shape.triangleup, location.belowbar, color.teal, size=size.tiny)
+plotshape(shortCond and canTrade, "Short", shape.triangledown, location.abovebar, color.red, size=size.tiny)
+
+alertcondition(longCond, "Engulfing long", "EURUSD H4 engulfing long")
+alertcondition(shortCond, "Engulfing short", "EURUSD H4 engulfing short")

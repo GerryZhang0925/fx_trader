@@ -1,0 +1,94 @@
+//@version=5
+strategy("EURUSD H4 EMA Cross ATR Trail", overlay=true,
+     initial_capital=100000, pyramiding=0, process_orders_on_close=false,
+     commission_type=strategy.commission.cash_per_order, commission_value=0,
+     default_qty_type=strategy.fixed, default_qty_value=1,
+     calc_on_every_tick=false, max_bars_back=5000)
+
+fastLen = input.int(20, "Fast EMA")
+slowLen = input.int(50, "Slow EMA")
+trendLen = input.int(200, "Trend EMA")
+atrLen = input.int(14, "ATR length")
+atrMult = input.float(2.5, "ATR trail multiple", step=0.1)
+tpR = input.float(2.0, "Take profit R (0 = trail only)", minval=0)
+riskPct = input.float(1.0, "Risk % of equity", minval=0.1, step=0.1)
+maxTradesDay = input.int(2, "Max trades per day")
+maxConsecLoss = input.int(3, "Consecutive losses halt")
+maxDailyR = input.float(2.0, "Daily loss R halt")
+
+emaFast = ta.ema(close, fastLen)
+emaSlow = ta.ema(close, slowLen)
+emaTrend = ta.ema(close, trendLen)
+atrVal = ta.atr(atrLen)
+stopDist = atrVal * atrMult
+
+bullCross = ta.crossover(emaFast, emaSlow)
+bearCross = ta.crossunder(emaFast, emaSlow)
+longCond = bullCross and close > emaTrend
+shortCond = bearCross and close < emaTrend
+
+var int tradesToday = 0
+var int consecLoss = 0
+var float dailyR = 0.0
+var float lastRiskAmt = na
+var int closedSeen = 0
+var float longStop = na
+var float shortStop = na
+
+if timeframe.change("D")
+    tradesToday := 0
+    dailyR := 0.0
+
+if strategy.closedtrades > closedSeen
+    for i = closedSeen to strategy.closedtrades - 1
+        p = strategy.closedtrades.profit(i)
+        rMult = nz(lastRiskAmt) > 0 ? p / lastRiskAmt : 0.0
+        dailyR += rMult
+        consecLoss := p < 0 ? consecLoss + 1 : 0
+    closedSeen := strategy.closedtrades
+
+halted = consecLoss >= maxConsecLoss or dailyR <= -maxDailyR
+canTrade = tradesToday < maxTradesDay and not halted and stopDist > 0
+riskAmt = strategy.equity * riskPct / 100.0
+qty = stopDist > 0 ? riskAmt / stopDist : na
+
+if canTrade and strategy.position_size == 0
+    if longCond
+        strategy.entry("Long", strategy.long, qty=qty)
+        lastRiskAmt := riskAmt
+        tradesToday += 1
+    else if shortCond
+        strategy.entry("Short", strategy.short, qty=qty)
+        lastRiskAmt := riskAmt
+        tradesToday += 1
+
+longLimit = tpR > 0 ? strategy.position_avg_price + stopDist * tpR : na
+shortLimit = tpR > 0 ? strategy.position_avg_price - stopDist * tpR : na
+
+if strategy.position_size > 0
+    if strategy.position_size[1] <= 0
+        longStop := strategy.position_avg_price - stopDist
+    else
+        longStop := math.max(nz(longStop), high - stopDist)
+    strategy.exit("XL", from_entry="Long", stop=longStop, limit=longLimit)
+
+if strategy.position_size < 0
+    if strategy.position_size[1] >= 0
+        shortStop := strategy.position_avg_price + stopDist
+    else
+        shortStop := math.min(nz(shortStop, 1e10), low + stopDist)
+    strategy.exit("XS", from_entry="Short", stop=shortStop, limit=shortLimit)
+
+if strategy.position_size > 0 and bearCross
+    strategy.close("Long", comment="death_cross")
+if strategy.position_size < 0 and bullCross
+    strategy.close("Short", comment="golden_cross")
+
+plot(emaFast, "EMA 20", color=color.aqua)
+plot(emaSlow, "EMA 50", color=color.orange)
+plot(emaTrend, "EMA 200", color=color.gray)
+plotshape(longCond and canTrade, "Long", shape.triangleup, location.belowbar, color.teal, size=size.tiny)
+plotshape(shortCond and canTrade, "Short", shape.triangledown, location.abovebar, color.red, size=size.tiny)
+
+alertcondition(longCond, "EMA long", "EURUSD H4 EMA golden cross long")
+alertcondition(shortCond, "EMA short", "EURUSD H4 EMA death cross short")

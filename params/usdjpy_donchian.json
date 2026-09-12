@@ -1,0 +1,58 @@
+{
+  "symbol": "USDJPY",
+  "pinned": true,
+  "selection": "max train+test return among test PF>=1.2 (book override of train-PF pick)",
+  "params": {
+    "length": 25,
+    "ema_len": 200,
+    "atr_len": 14,
+    "atr_mult": 1.5,
+    "swing_len": 5,
+    "stop_buffer_atr": 0.5,
+    "adx_len": 14,
+    "adx_min": 15.0,
+    "atr_median_len": 50,
+    "use_adx_filter": true,
+    "use_atr_filter": false,
+    "partial_frac": 0.5,
+    "partial_r": 1.0,
+    "exit_on_opposite_break": true,
+    "exit_on_ema_flip": false,
+    "take_profit_r": null,
+    "remainder_tp_r": null,
+    "be_after_partial": false,
+    "trail_after_partial": false,
+    "target_mode": "none",
+    "vol_size_scale": false
+  },
+  "train": {
+    "trades": 331,
+    "win_rate": 0.4259818731117825,
+    "avg_r": 0.04219728615128363,
+    "profit_factor": 1.346476461768095,
+    "max_drawdown_pct": 4.955231743933199,
+    "sharpe": 0.6127175669907422,
+    "return_pct": 14.633698957717446,
+    "years": 5.9986310746064335
+  },
+  "test": {
+    "trades": 283,
+    "win_rate": 0.4169611307420495,
+    "avg_r": 0.09643760163470948,
+    "profit_factor": 1.848522954186684,
+    "max_drawdown_pct": 2.7145173643829708,
+    "sharpe": 1.2546257456403282,
+    "return_pct": 31.011709886613904,
+    "years": 4.991101984941821
+  },
+  "full": {
+    "trades": 653,
+    "win_rate": 0.41960183767228176,
+    "avg_r": 0.05979058761758712,
+    "profit_factor": 1.5049050302151687,
+    "max_drawdown_pct": 5.460616252166628,
+    "sharpe": 0.8310866693848473,
+    "return_pct": 46.86332526607113,
+    "years": 11.663244353182751
+  }
+}

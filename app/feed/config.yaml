@@ -1,0 +1,7 @@
+# Dukascopy incremental H1/H4. Weekend (Sat/Sun UTC) is skipped.
+lag_sec: 180
+retry_attempts: 6
+retry_base_wait: 20.0
+retry_cap_wait: 300.0
+overlap_days: 2
+start: "2015-01-01"
