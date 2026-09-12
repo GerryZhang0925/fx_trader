@@ -2,7 +2,9 @@
 
 Display proposals. Console, JSON/Markdown, Telegram, local HTML. No orders.
 
-Unset Telegram token/chat_id → skip. `--serve` binds `127.0.0.1` only.
+`--serve` binds `127.0.0.1:18080` only. The page shows core ON/OFF (POST `/api/cores`), module run status, and proposals. CLIs append one line to `reports/status.jsonl`. Core toggles are config, not orders.
+
+Unset Telegram token/chat_id → skip.
 
 ## Config
 

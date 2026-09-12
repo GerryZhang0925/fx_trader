@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fx-trader"
+version = "0.1.0"
+description = "Closed-bar FX research kit. Parallel strategy cores, signals only, no broker orders."
+requires-python = ">=3.11"
+dependencies = [
+  "numpy>=1.21.0",
+  "pandas>=1.3.0",
+  "pyyaml>=6.0",
+  "yfinance>=0.2.40",
+  "matplotlib>=3.4.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0.0"]
+
+[project.scripts]
+fx-trader = "run:main"
+
+[tool.setuptools]
+package-dir = {"" = "app"}
+py-modules = ["run", "paths", "contracts"]
+
+[tool.setuptools.packages.find]
+where = ["app"]
+include = ["feed*", "strategy*", "account*", "output*"]
+exclude = ["*.tests", "*.tests.*", "tests", "tests.*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml"]

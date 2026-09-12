@@ -1,6 +1,6 @@
 """Donchian portfolio: configurable pairs and per-pair risk, then a shared-equity book.
 
-Default book is USDCAD+USDJPY+GBPUSD at 5.5% risk each (`portfolio` in config.yaml).
+Default book is USDCAD+USDJPY+GBPUSD at 5.0% risk each (`portfolio` in config.yaml).
 Override with --pairs / --risk, or risk_pct_by_pair in YAML.
 """
 
@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import pandas as pd
@@ -17,7 +16,6 @@ from paths import KIT_DIR, boot
 
 boot()
 ROOT = KIT_DIR  # kit root
-sys.path.insert(0, str(ROOT))
 
 from feed.loader import load_csv  # noqa: E402
 from account.engine import run_backtest  # noqa: E402
@@ -25,7 +23,7 @@ from account.metrics import compute_metrics, format_report, checklist  # noqa: E
 from feed.pairs import CANDIDATES, KEEP_BOTH, RECOMMENDED, pip_size  # noqa: E402
 from output.reporting import envelope, notify, write_json  # noqa: E402
 from account.settings import engine_from_config, load_config  # noqa: E402
-from strategy.donchian import DonchianParams, DonchianStrategy  # noqa: E402
+from strategy.cores.donchian import DonchianParams, DonchianStrategy  # noqa: E402
 
 
 def _daily_close(df: pd.DataFrame) -> pd.Series:
@@ -91,7 +89,7 @@ def risk_pct_for(symbol: str, port: dict, override: float | None = None) -> floa
     by_pair = port.get("risk_pct_by_pair") or {}
     if symbol in by_pair and by_pair[symbol] is not None:
         return float(by_pair[symbol])
-    return float(port.get("risk_pct_per_pair", 5.5))
+    return float(port.get("risk_pct_per_pair", 5.0))
 
 
 def parse_symbols(raw: str | None, port: dict) -> list[str]:
@@ -127,6 +125,13 @@ def main(argv: list[str] | None = None) -> int:
     out_dir = args.out or (ROOT / "reports")
     out_dir.mkdir(parents=True, exist_ok=True)
     symbols = parse_symbols(args.pairs, port)
+    from output.status import tracked
+
+    with tracked("account", "portfolio", out_dir=out_dir, message=",".join(symbols)):
+        return _run_book(args, cfg, port, data_dir, out_dir, symbols)
+
+
+def _run_book(args, cfg, port, data_dir: Path, out_dir: Path, symbols: list[str]) -> int:
     min_pf = float(port.get("min_pair_pf", 1.2))
     drop_below = float(port.get("exclude_below_pf", 1.0))
     max_corr = float(port.get("max_corr", 0.7))
@@ -180,7 +185,7 @@ def main(argv: list[str] | None = None) -> int:
 
     rows = pd.DataFrame(results)
     if rows.empty:
-        raise SystemExit("No pair CSVs found. Run download_data.py --symbols EURUSD,GBPUSD,USDJPY,AUDUSD")
+        raise SystemExit("No pair CSVs found. Run: python -m feed.download --symbols EURUSD,GBPUSD,USDJPY,AUDUSD")
 
     px = pd.concat(closes, axis=1).dropna(how="any")
     price_corr = px.pct_change().dropna().corr()

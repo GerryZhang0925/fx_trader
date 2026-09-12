@@ -9,6 +9,7 @@ PAIRS = {
     "AUDUSD": {"pip_size": 0.0001, "point_value": 100000.0},
     "USDCAD": {"pip_size": 0.0001, "point_value": 100000.0},
     "NZDUSD": {"pip_size": 0.0001, "point_value": 100000.0},
+    "USDCHF": {"pip_size": 0.0001, "point_value": 100000.0},
 }
 
 CANDIDATES = ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "NZDUSD"]

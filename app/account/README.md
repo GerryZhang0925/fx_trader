@@ -2,9 +2,9 @@
 
 Equity, spread, slippage, daily halt → estimated fill and size. Next-bar engine for research PnL.
 
-Live: `propose(snapshot, cfg)` adds lots. Backtest: `backtest/run_portfolio.py`.
+Live: `propose(snapshot, cfg)` adds lots. Backtest: `python -m account.backtest`.
 
-Adopted risk: **5.5% per pair** on USDCAD / USDJPY / GBPUSD.
+Adopted risk: **5.0% per pair** on USDCAD / USDJPY / GBPUSD.
 
 ## Config
 

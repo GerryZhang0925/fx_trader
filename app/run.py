@@ -20,11 +20,13 @@ from account.settings import (  # noqa: E402
     parse_symbols,
 )
 from feed.loader import load_csv  # noqa: E402
+from output.cores import load_enabled  # noqa: E402
 from output.publish import publish  # noqa: E402
-from strategy.params import (  # noqa: E402
-    analyze,
-    load_pair_params,
+from output.status import record as record_status  # noqa: E402
+from output.status import tracked  # noqa: E402
+from strategy.common.params import (  # noqa: E402
     portfolio_params,
+    prepare_core,
     snapshot_pair,
 )
 
@@ -34,6 +36,10 @@ def _log(msg: str) -> None:
     print(f"[{now}] {msg}", flush=True)
 
 
+def _status(out_dir: Path, action: str, state: str, message: str = "") -> None:
+    record_status("app", action, state, message, out_dir=out_dir)
+
+
 def collect_proposals(
     symbols: list[str],
     data_dir: Path,
@@ -41,19 +47,32 @@ def collect_proposals(
     fallback,
     cfg: dict,
     lookback: int,
+    *,
+    out_dir: Path | None = None,
+    cores: list[str] | None = None,
 ) -> list[dict]:
     port = cfg.get("portfolio", {})
+    if cores is not None:
+        names = list(cores)
+    else:
+        names = [n for n, on in load_enabled(out_dir, cfg).items() if on]
     pairs: list[dict] = []
     for symbol in symbols:
         path = data_dir / f"{symbol.lower()}_h4.csv"
         if not path.exists():
             _log(f"SKIP {symbol}: missing {path}")
             continue
-        params, _extra = load_pair_params(symbol, params_dir, fallback)
         h4 = load_csv(path)
-        prepared = analyze(h4, params)
-        snap = snapshot_pair(symbol, prepared, params, lookback=lookback)
-        pairs.append(propose(snap, cfg, risk_pct=risk_pct_for(symbol, port)))
+        for name in names:
+            try:
+                prepared, params = prepare_core(
+                    symbol, h4, core=name, cfg=cfg, params_dir=params_dir, fallback=fallback
+                )
+            except Exception as exc:  # noqa: BLE001
+                _log(f"SKIP {symbol} {name}: {exc}")
+                continue
+            snap = snapshot_pair(symbol, prepared, params, lookback=lookback, core=name)
+            pairs.append(propose(snap, cfg, risk_pct=risk_pct_for(symbol, port)))
     return pairs
 
 
@@ -91,36 +110,64 @@ def watch_loop(
     lag: pd.Timedelta,
     serve_http: bool,
     sleeper=None,
+    on_cores_change=None,
 ) -> int:
     from feed.live import is_fx_weekend, next_poll_time, utc_now
 
     sleep = sleeper or __import__("time").sleep
     last_bars: dict[str, str] = {}
+    last_flags: dict[str, bool] = {}
     _log("watch started (signals only, no orders)")
+    _status(out_dir, "watch", "started", ",".join(symbols))
     while True:
         try:
             now = utc_now()
+            flags = load_enabled(out_dir, cfg)
             if is_fx_weekend(now):
                 _log("FX weekend (Sat/Sun UTC): no download")
-                snaps = collect_proposals(symbols, data_dir, params_dir, fallback, cfg, lookback)
-                if not last_bars:
-                    publish(snaps, cfg, out_dir, extra={"updates": [], "skipped": "weekend"}, serve_http=serve_http)
+                snaps = collect_proposals(
+                    symbols, data_dir, params_dir, fallback, cfg, lookback, out_dir=out_dir
+                )
+                if not last_bars or flags != last_flags:
+                    publish(
+                        snaps,
+                        cfg,
+                        out_dir,
+                        extra={"updates": [], "skipped": "weekend"},
+                        serve_http=serve_http,
+                        on_cores_change=on_cores_change,
+                    )
                     last_bars = {row["symbol"]: row["bar_open_utc"] for row in snaps}
+                    last_flags = flags
+                    _status(out_dir, "watch", "ok", f"weekend snapshot {len(snaps)} rows")
             else:
                 updates = refresh_pairs(symbols, data_dir, lag)
-                snaps = collect_proposals(symbols, data_dir, params_dir, fallback, cfg, lookback)
+                snaps = collect_proposals(
+                    symbols, data_dir, params_dir, fallback, cfg, lookback, out_dir=out_dir
+                )
                 bars = {row["symbol"]: row["bar_open_utc"] for row in snaps}
-                changed = bars != last_bars or not last_bars
+                changed = bars != last_bars or flags != last_flags or not last_bars
                 if changed:
-                    publish(snaps, cfg, out_dir, extra={"updates": updates}, serve_http=serve_http)
+                    publish(
+                        snaps,
+                        cfg,
+                        out_dir,
+                        extra={"updates": updates},
+                        serve_http=serve_http,
+                        on_cores_change=on_cores_change,
+                    )
                     last_bars = bars
+                    last_flags = flags
+                    _status(out_dir, "watch", "ok", f"published {len(snaps)} rows")
                 else:
                     _log("no new H4 bar yet")
         except KeyboardInterrupt:
             _log("stopped")
+            _status(out_dir, "watch", "ok", "stopped")
             return 0
         except Exception as exc:  # noqa: BLE001
             _log(f"cycle failed, will wait then retry: {exc}")
+            _status(out_dir, "watch", "error", str(exc))
         nxt = next_poll_time(utc_now(), lag=lag)
         wait = max(5.0, (nxt - utc_now()).total_seconds())
         _log(f"sleep until {nxt} ({wait / 60:.1f} min)")
@@ -128,7 +175,22 @@ def watch_loop(
             sleep(wait)
         except KeyboardInterrupt:
             _log("stopped")
+            _status(out_dir, "watch", "ok", "stopped")
             return 0
+
+
+def _hold_server(serve_http: bool) -> int:
+    """Keep --offline/--once --serve alive; daemon HTTP thread dies with the process."""
+    if not serve_http:
+        return 0
+    _log("serving until Ctrl+C")
+    try:
+        while True:
+            __import__("time").sleep(1.0)
+    except KeyboardInterrupt:
+        _log("stopped")
+        return 0
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -161,17 +223,47 @@ def main(argv: list[str] | None = None) -> int:
     lag = pd.Timedelta(seconds=max(0, lag_sec))
     serve_http = bool(args.serve or cfg.get("serve"))
 
+    def republish(_flags=None):
+        snaps = collect_proposals(
+            symbols, data_dir, params_dir, fallback, cfg, lookback, out_dir=out_dir
+        )
+        publish(snaps, cfg, out_dir, serve_http=False)
+
+    hook = republish if serve_http else None
+
     if args.offline:
-        snaps = collect_proposals(symbols, data_dir, params_dir, fallback, cfg, lookback)
-        publish(snaps, cfg, out_dir, serve_http=serve_http)
-        return 0
+        with tracked("app", "offline", out_dir=out_dir, message=",".join(symbols)):
+            snaps = collect_proposals(
+                symbols, data_dir, params_dir, fallback, cfg, lookback, out_dir=out_dir
+            )
+            publish(snaps, cfg, out_dir, serve_http=serve_http, on_cores_change=hook)
+        return _hold_server(serve_http)
     if args.once:
-        updates = refresh_pairs(symbols, data_dir, lag)
-        snaps = collect_proposals(symbols, data_dir, params_dir, fallback, cfg, lookback)
-        publish(snaps, cfg, out_dir, extra={"updates": updates}, serve_http=serve_http)
-        return 0
+        with tracked("app", "once", out_dir=out_dir, message=",".join(symbols)):
+            updates = refresh_pairs(symbols, data_dir, lag)
+            snaps = collect_proposals(
+                symbols, data_dir, params_dir, fallback, cfg, lookback, out_dir=out_dir
+            )
+            publish(
+                snaps,
+                cfg,
+                out_dir,
+                extra={"updates": updates},
+                serve_http=serve_http,
+                on_cores_change=hook,
+            )
+        return _hold_server(serve_http)
     return watch_loop(
-        symbols, data_dir, params_dir, fallback, cfg, out_dir, lookback, lag, serve_http
+        symbols,
+        data_dir,
+        params_dir,
+        fallback,
+        cfg,
+        out_dir,
+        lookback,
+        lag,
+        serve_http,
+        on_cores_change=hook,
     )
 
 

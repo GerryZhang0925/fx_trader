@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import pandas as pd
@@ -14,13 +13,12 @@ from paths import KIT_DIR, boot
 
 boot()
 ROOT = KIT_DIR  # kit root
-sys.path.insert(0, str(ROOT))
 
 from account.engine import run_backtest  # noqa: E402
 from account.metrics import compute_metrics  # noqa: E402
 from account.settings import engine_from_config, load_config  # noqa: E402
 from account.backtest.run_backtest import build_strategy, load_frames, prepare  # noqa: E402
-from strategy.donchian import DonchianParams, DonchianStrategy  # noqa: E402
+from strategy.cores.donchian import DonchianParams, DonchianStrategy  # noqa: E402
 
 
 def iter_windows(index: pd.DatetimeIndex, train_years: int, test_years: int, step_years: int):
@@ -112,11 +110,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out", type=Path, default=None)
     args = p.parse_args(argv)
     cfg = load_config(args.config)
+    from output.status import tracked
+
+    out_dir = args.out or (ROOT / "reports")
+    with tracked("strategy", "walkforward", out_dir=out_dir, message=args.strategy):
+        return _walk(args, cfg, out_dir)
+
+
+def _walk(args, cfg, out_dir: Path) -> int:
     h4, m5 = load_frames(args, cfg)
     strat = build_strategy(args.strategy, cfg)
     prepared = prepare(args.strategy, strat, h4, m5, args)
     wf = run_walkforward(prepared, cfg)
-    out_dir = args.out or (ROOT / "reports")
     out_dir.mkdir(parents=True, exist_ok=True)
     wf_path = out_dir / f"{args.strategy}_walkforward.csv"
     wf.to_csv(wf_path, index=False)

@@ -5,10 +5,10 @@ Closed-bar Donchian proposals for USDCAD / USDJPY / GBPUSD.
 `run.py` calls **feed → strategy → account → output**. It does not place orders.
 
 ```bash
-python run_signals.py              # watch H4 closes
-python run_signals.py --offline    # CSV only
-python run_signals.py --once
-python run_signals.py --offline --serve   # also http://127.0.0.1:8765
+python run.py              # watch H4 closes
+python run.py --offline    # CSV only
+python run.py --once
+python run.py --offline --serve   # also http://127.0.0.1:18080 (status + proposals)
 ```
 
 ## Config

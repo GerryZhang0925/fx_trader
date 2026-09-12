@@ -41,3 +41,14 @@ class Proposal(SignalSnapshot, total=False):
     risk_amount: float | None
     spread_pips: float
     slippage_pips: float
+
+
+class StatusEvent(TypedDict, total=False):
+    """One JSONL line in reports/status.jsonl. Written by CLIs; rendered by output.web."""
+
+    time: str
+    module: str
+    action: str
+    state: str
+    message: str
+    extra: dict[str, Any]

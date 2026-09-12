@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from feed.loader import make_synthetic
-from strategy.donchian import DonchianParams, DonchianStrategy
-from strategy.params import snapshot_pair
+from strategy.cores.donchian import DonchianParams, DonchianStrategy
+from strategy.common.params import snapshot_pair
 
 
 def test_snapshot_has_no_order_and_no_lots():
@@ -10,6 +10,7 @@ def test_snapshot_has_no_order_and_no_lots():
     params = DonchianParams(use_adx_filter=False, use_atr_filter=False)
     prepared = DonchianStrategy(params).prepare(h4)
     snap = snapshot_pair("EURUSD", prepared, params, lookback=5)
+    assert snap["core"] == "donchian"
     assert snap["symbol"] == "EURUSD"
     assert snap["signal"] in (-1, 0, 1)
     assert "order" not in snap

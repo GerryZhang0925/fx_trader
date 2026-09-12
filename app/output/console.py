@@ -5,16 +5,16 @@ from __future__ import annotations
 
 def format_text(payload: dict) -> str:
     lines = [
-        "# Donchian proposals (no orders)",
+        "# Proposals (no orders)",
         "",
-        "Closed H4 bar only. Fill would be the next bar open. Not advice. Not a broker.",
+        "Closed H4 bar only. Enabled cores run in parallel. Fill would be the next bar open. Not advice. Not a broker.",
         f"Generated: {payload.get('time')}",
         "Daily halt reminder: max 2 trades / 3 losses / -2R that day.",
         "",
     ]
     for row in payload.get("data", {}).get("pairs", []):
         mark = "SIGNAL" if row.get("signal") else "flat"
-        lines.append(f"## {row.get('symbol')}  [{mark}]  {row.get('side')}")
+        lines.append(f"## {row.get('symbol')}  [{mark}]  {row.get('side')}  core={row.get('core') or '—'}")
         lines.append(f"- bar UTC {row.get('bar_open_utc')}  /  JST {row.get('bar_open_jst')}")
         lines.append(
             f"- close={row.get('close')}  ADX={row.get('adx')}  EMA={row.get('ema_trend')}  "

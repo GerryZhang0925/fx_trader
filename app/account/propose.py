@@ -13,7 +13,7 @@ def risk_pct_for(symbol: str, port: dict, override: float | None = None) -> floa
     by_pair = port.get("risk_pct_by_pair") or {}
     if symbol in by_pair and by_pair[symbol] is not None:
         return float(by_pair[symbol])
-    return float(port.get("risk_pct_per_pair", 5.5))
+    return float(port.get("risk_pct_per_pair", 5.0))
 
 
 def _fill_if_open_equals_close(direction: int, close: float, cost: CostConfig) -> float:

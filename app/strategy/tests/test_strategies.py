@@ -6,12 +6,12 @@ from pathlib import Path
 
 from feed.loader import make_synthetic, resample_ohlcv
 from account.engine import EngineConfig, run_backtest
-from strategy.confluence import ConfluenceStrategy
-from strategy.confidence import apply_confidence
-from strategy.donchian import DonchianStrategy
-from strategy.ema_atr import EmaAtrStrategy
-from strategy.engulfing_rvol import EngulfingRvolStrategy
-from strategy.killzone import KillZoneStrategy
+from strategy.cores.confluence import ConfluenceStrategy
+from strategy.cores.donchian.confidence import apply_confidence
+from strategy.cores.donchian import DonchianStrategy
+from strategy.cores.ema_atr import EmaAtrStrategy
+from strategy.cores.engulfing_rvol import EngulfingRvolStrategy
+from strategy.cores.killzone import KillZoneStrategy
 
 
 def test_each_strategy_prepares_and_backtests_synthetic():

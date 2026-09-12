@@ -11,5 +11,6 @@ telegram:
 
 web:
   host: 127.0.0.1
-  port: 8765
+  port: 18080
   dir: www
+  refresh_sec: 20

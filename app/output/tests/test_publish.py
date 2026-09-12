@@ -27,7 +27,7 @@ def _payload():
                     "partial_1r_if_filled_at_close": 1.355,
                     "lots": 1.1,
                     "units": 110000,
-                    "risk_pct": 5.5,
+                    "risk_pct": 5.0,
                     "equity": 100000,
                     "spread_pips": 1.0,
                     "slippage_pips": 0.2,
@@ -37,8 +37,10 @@ def _payload():
                     "bar_open_utc": "2026-08-31 20:00:00+00:00",
                     "bar_open_jst": "2026-09-01 05:00:00+09:00",
                     "recent_signals": [],
+                    "core": "donchian",
                 }
-            ]
+            ],
+            "cores": {"donchian": True, "ema_atr": False, "engulfing": False, "killzone": False, "confluence": False},
         },
     }
 
@@ -48,6 +50,9 @@ def test_html_and_markdown_contain_pair(tmp_path):
     html = render_html(payload)
     assert "USDCAD" in html
     assert "1.1000 lots" in html
+    assert "Run status" in html
+    assert "Cores" in html
+    assert "Turn on" in html
     text = format_text(payload)
     assert "USDCAD" in text
     assert "no orders" in text.lower() or "Not a broker" in text
@@ -61,3 +66,21 @@ def test_html_and_markdown_contain_pair(tmp_path):
 
 def test_telegram_skips_without_token():
     assert send_message("hello", {"telegram": {"chat_id": None}}) is None
+
+
+def test_serve_bind_failure_is_nonfatal(tmp_path, monkeypatch):
+    import importlib
+
+    pub = importlib.import_module("output.publish")
+
+    def boom(*_a, **_k):
+        raise OSError("bind failed")
+
+    monkeypatch.setattr(pub, "serve", boom)
+    wrapped = pub.publish(
+        [{"symbol": "USDCAD", "signal": 0, "side": "flat", "risk_pct": 5.0}],
+        {"outputs": ["files", "web"]},
+        tmp_path,
+        serve_http=True,
+    )
+    assert wrapped["data"]["pairs"][0]["symbol"] == "USDCAD"

@@ -187,19 +187,22 @@ def main(argv: list[str] | None = None) -> int:
     data_dir = root / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     symbols = [s.strip().upper() for s in (args.symbols or args.symbol).split(",") if s.strip()]
-    for symbol in symbols:
-        h1_path = args.out_h1 or (data_dir / f"{symbol.lower()}_h1.csv")
-        h4_path = args.out_h4 or (data_dir / f"{symbol.lower()}_h4.csv")
-        print(f"=== {symbol} ===", flush=True)
-        h1 = download_h1(symbol, args.start, args.end, cache_dir=data_dir / "cache")
-        h4 = resample_ohlcv(h1, "4h")
-        h1.to_csv(h1_path, index_label="timestamp")
-        h4.to_csv(h4_path, index_label="timestamp")
-        span = (h4.index[-1] - h4.index[0]).days / 365.25
-        print(f"H1 {len(h1)} bars -> {h1_path}")
-        print(f"H4 {len(h4)} bars, {span:.2f} years, {h4.index[0]} -> {h4.index[-1]}")
-        print(f"Wrote {h4_path}")
-    return 0
+    from output.status import tracked
+
+    with tracked("feed", "download", out_dir=root / "reports", message=",".join(symbols)):
+        for symbol in symbols:
+            h1_path = args.out_h1 or (data_dir / f"{symbol.lower()}_h1.csv")
+            h4_path = args.out_h4 or (data_dir / f"{symbol.lower()}_h4.csv")
+            print(f"=== {symbol} ===", flush=True)
+            h1 = download_h1(symbol, args.start, args.end, cache_dir=data_dir / "cache")
+            h4 = resample_ohlcv(h1, "4h")
+            h1.to_csv(h1_path, index_label="timestamp")
+            h4.to_csv(h4_path, index_label="timestamp")
+            span = (h4.index[-1] - h4.index[0]).days / 365.25
+            print(f"H1 {len(h1)} bars -> {h1_path}")
+            print(f"H4 {len(h4)} bars, {span:.2f} years, {h4.index[0]} -> {h4.index[-1]}")
+            print(f"Wrote {h4_path}")
+        return 0
 
 
 if __name__ == "__main__":

@@ -1,4 +1,11 @@
-# Price-only Donchian defaults. Live book uses params/*.json when present.
+# Price-only cores. Live runs every core with cores.<name>: true in parallel.
+cores:
+  donchian: true
+  ema_atr: false
+  engulfing: false
+  killzone: false
+  confluence: false
+
 donchian:
   length: 30
   ema_len: 200

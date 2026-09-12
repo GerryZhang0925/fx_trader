@@ -10,6 +10,10 @@ KIT_DIR = APP_DIR.parent
 
 
 def boot() -> None:
-    for p in (str(APP_DIR), str(KIT_DIR)):
-        if p not in sys.path:
-            sys.path.insert(0, p)
+    """Put app/ first so `import run` is app/run.py, not the kit-root launcher."""
+    app = str(APP_DIR)
+    try:
+        sys.path.remove(app)
+    except ValueError:
+        pass
+    sys.path.insert(0, app)

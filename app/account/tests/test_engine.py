@@ -106,7 +106,7 @@ def test_donchian_ignores_current_bar_high():
     df["open"] = 1.100
     df.iloc[-1, df.columns.get_loc("high")] = 1.20
     df.iloc[-1, df.columns.get_loc("close")] = 1.19
-    from strategy.donchian import DonchianParams, DonchianStrategy
+    from strategy.cores.donchian import DonchianParams, DonchianStrategy
 
     out = DonchianStrategy(
         DonchianParams(use_adx_filter=False, use_atr_filter=False, partial_frac=0.0)

@@ -17,7 +17,7 @@ risk:
 
 portfolio:
   candidates: [USDCAD, USDJPY, GBPUSD]
-  risk_pct_per_pair: 5.5
+  risk_pct_per_pair: 5.0
   risk_pct_by_pair: {}
   fixed_book: true
   min_pair_pf: 1.2
@@ -30,7 +30,7 @@ portfolio:
 upside:
   core_pairs: [USDCAD, USDJPY, GBPUSD]
   keep_baseline_exit: true
-  recommended_risk_pct_per_pair: 5.5
+  recommended_risk_pct_per_pair: 5.0
   dd_cap_pct: 15.0
   half_kelly_pct: 8.4
   quarter_kelly_pct: 4.2

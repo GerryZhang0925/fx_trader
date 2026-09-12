@@ -306,5 +306,60 @@
       "return_pct": 23.173650108656506,
       "years": 11.663244353182751
     }
+  },
+  {
+    "symbol": "USDCHF",
+    "selection": "max train PF among test PF>=1.0 and train DD<=20%",
+    "params": {
+      "length": 45,
+      "ema_len": 200,
+      "atr_len": 14,
+      "atr_mult": 1.5,
+      "swing_len": 5,
+      "stop_buffer_atr": 0.5,
+      "adx_len": 14,
+      "adx_min": 18.0,
+      "atr_median_len": 50,
+      "use_adx_filter": true,
+      "use_atr_filter": true,
+      "partial_frac": 0.5,
+      "partial_r": 1.0,
+      "exit_on_opposite_break": true,
+      "exit_on_ema_flip": false,
+      "take_profit_r": null,
+      "remainder_tp_r": null,
+      "be_after_partial": false,
+      "trail_after_partial": false,
+      "target_mode": "none",
+      "vol_size_scale": false
+    },
+    "train": {
+      "trades": "158",
+      "win_rate": 0.4936708860759494,
+      "avg_r": 0.05656159130426078,
+      "profit_factor": 1.5094759393410042,
+      "max_drawdown_pct": 4.441508909284416,
+      "sharpe": 0.5984995810688896,
+      "return_pct": 9.22570623241683
+    },
+    "test": {
+      "trades": "152",
+      "win_rate": 0.39473684210526316,
+      "avg_r": 0.010848225722754266,
+      "profit_factor": 1.0800301751874952,
+      "max_drawdown_pct": 4.783694114215372,
+      "sharpe": 0.12176577266527126,
+      "return_pct": 1.562442365892358
+    },
+    "full": {
+      "trades": 326,
+      "win_rate": 0.44785276073619634,
+      "avg_r": 0.03342222414252854,
+      "profit_factor": 1.2742495259463698,
+      "max_drawdown_pct": 4.783694114215365,
+      "sharpe": 0.36252196038284956,
+      "return_pct": 11.270484742266017,
+      "years": 11.663244353182751
+    }
   }
 ]

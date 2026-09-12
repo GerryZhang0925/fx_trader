@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r python/requirements.txt
+      - run: pip install -r requirements.txt
       - run: python -m pytest app/feed/tests app/feed/backtest -q
 
   unit-strategy:
@@ -29,8 +29,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r python/requirements.txt
-      - run: python -m pytest app/strategy/tests -q
+      - run: pip install -r requirements.txt
+      - run: python -m pytest app/strategy/tests app/strategy/cores -q
 
   unit-account:
     name: unit-account
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r python/requirements.txt
+      - run: pip install -r requirements.txt
       - run: python -m pytest app/account/tests -q
 
   unit-output:
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r python/requirements.txt
+      - run: pip install -r requirements.txt
       - run: python -m pytest app/output/tests app/output/backtest -q
 
   app-tests:
@@ -63,7 +63,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r python/requirements.txt
+      - run: pip install -r requirements.txt
       - run: python -m pytest app/tests app/backtest -q
 
   gate:
