@@ -93,6 +93,41 @@ USDJPY だけ学習 PF 最大ではなく、学習+検証リターン最大か�
 
 採用パラメータの 3 年学習 / 1 年検証 / 1 年ステップ。平均窓 PF は 3 ペアとも ≥ 1.64。1 年窓は本数が少なく PF&lt;1 の年がある（CAD 2022、GBP 2019/2023/2025）。ライブ変更の前に `reports/walkforward_adopted.md` を出す。1 年・約 15 本の窓だけでパラメータは変えない。
 
+## オーバーフィット検証
+
+グリッドは Donchian 長さ 9 × ATR トレイル 4 × ADX 最小 11 × ATR フィルタ 2 = **792 試行 / ペア**。探索ユニバースは 7 本、ライブは 3 本。再計算: `python -m strategy.cores.donchian.backtest.eval_overfit`。成績はチェックリストであり保証ではない。**ライブパラメータは変えない。**
+
+学習 &lt;2021、検証 2021–2025（`params/{symbol}_donchian.json`）。DSR は Bailey–López de Prado。N=792 は独立試行仮定（セルは相関するので有効 N は小さい）。N_eff=20 は相関グリッドのスケッチ。検証 DSR は N=1（ホールドアウト扱い）だが、検証 PF 下限で選んでいるので純粋な lockbox ではない。
+
+| ペア | 学習 PF | 検証 PF | PF 変化 | 学習 Sharpe | 検証 Sharpe | DSR 学習 N=792 | DSR 学習 N_eff=20 | DSR 検証 N=1 |
+|---|---|---|---|---|---|---|---|---|
+| USDCAD | 2.15 | 1.24 | −42% | 1.01 | 0.32 | 0.24 | 0.72 | 0.76 |
+| USDJPY | 1.35 | 1.85 | +37% | 0.61 | 1.25 | 0.05 | 0.34 | 1.00 |
+| GBPUSD | 1.46 | 1.28 | −13% | 0.54 | 0.35 | 0.03 | 0.28 | 0.78 |
+
+公式 CSCV の PBO はセルごとのリターン系列を残していないので未計算。代わりにペア探索: 7 本中 4 本が検証 PF またはブック DD で落ちた（失敗率 **4/7 ≈ 0.57**）。PBO &gt; 0.5 と同じ方向。
+
+ウォークフォワードは採用パラメータのまま（窓ごとに再最適化しない）。3 年学習 / 1 年検証 / 1 年ステップ。詳細は `reports/walkforward_adopted.md`。
+
+| ペア | 平均窓 PF | PF&lt;1 の年 | 判定 |
+|---|---|---|---|
+| USDCAD | 1.69 | 2022（n=19） | 平均は通過。1 年窓だけでは変えない |
+| USDJPY | 1.64 | なし | 通過 |
+| GBPUSD | 1.70 | 2019 / 2023 / 2025（n=11–24） | 平均は通過。少数本の年はノイズ |
+
+| ID | 内容 | 重大度 |
+|---|---|---|
+| F1 | 検証期を選定フィルタに使っている（CAD/GBP は検証 PF≥1.0、JPY は検証 PF≥1.2 かつ学習+検証リターン最大） | High |
+| F2 | ペアあたり 792 セル。独立 N だと学習 DSR が 0.03–0.24 で、IS Sharpe をエッジの証拠にできない | High |
+| F3 | USDJPY の目的関数に検証リターンが入っている | Medium |
+| F4 | WF の 1 年窓は n≈11–24 で PF&lt;1 がありうる（CAD 2022、GBP 2019/2023/2025） | Info |
+
+ルックアヘッド（次バー始値）とコスト（1 pip + 0.2 slip）はこの検証の欠陥ではない。
+
+**判定:** 探索過程はオーバーフィットしやすい。採用 3 本は IS だけではない（検証 PF は 1.2 超、WF 平均 PF は持つ、棄てた 4 本が IS だけの名前を拾っている）。11 年年率 21% は学習+検証の混在なので、その数字でサイズを上げない。
+
+これは手法の点検であり、売買助言ではない。
+
 ## 再実行
 
 ```bash
@@ -101,6 +136,7 @@ python -m account.backtest
 python -m strategy.cores.donchian.backtest
 python -m strategy.cores.donchian.backtest.eval_regime
 python -m strategy.cores.donchian.backtest.eval_walkforward
+python -m strategy.cores.donchian.backtest.eval_overfit
 ```
 
 Pine の単体確認は `pine/01_donchian_h4.pine`（合成ブックではない）。

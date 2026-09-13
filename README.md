@@ -136,7 +136,7 @@ cd fx_trader
 pip install -r requirements.txt
 
 # 採用ブック（モジュール CLI。PYTHONPATH=app か pip install -e .）
-python -m feed.download --start 2015-01-01 --symbols EURUSD,GBPUSD,USDJPY,AUDUSD,USDCAD,NZDUSD,USDCHF
+python -m feed.download --start 2015-01-01
 python -m account.backtest
 
 # サインのみ（ブローカーへ発注しない）。既定は常時起動。
