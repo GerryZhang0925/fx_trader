@@ -185,7 +185,7 @@ def _run_book(args, cfg, port, data_dir: Path, out_dir: Path, symbols: list[str]
 
     rows = pd.DataFrame(results)
     if rows.empty:
-        raise SystemExit("No pair CSVs found. Run: python -m feed.download --symbols EURUSD,GBPUSD,USDJPY,AUDUSD")
+        raise SystemExit("No pair CSVs found. Run: python -m feed.download")
 
     px = pd.concat(closes, axis=1).dropna(how="any")
     price_corr = px.pct_change().dropna().corr()

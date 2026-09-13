@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .download import download_h1, main as download_main
+from .download import download_h1, main as download_main, parse_cli_symbols
 from .live import (
     is_fx_weekend,
     last_closed_h4_open,
@@ -18,6 +18,7 @@ __all__ = [
     "RECOMMENDED",
     "download_h1",
     "download_main",
+    "parse_cli_symbols",
     "is_fx_weekend",
     "last_closed_h4_open",
     "load_csv",

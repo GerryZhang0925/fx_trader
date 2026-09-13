@@ -1,7 +1,8 @@
-"""Download ~10 years of EURUSD H1 from Dukascopy and compile H4 CSV.
+"""Download H1 from Dukascopy and compile H4 CSV.
 
 Uses the public datafeed (no API key). Prices are bid OHLC; the backtest engine
 still applies spread/slippage, so costs are slightly conservative.
+Default CLI set is the compared research pairs in `feed.pairs.CANDIDATES`.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from pathlib import Path
 import pandas as pd
 
 from .loader import resample_ohlcv
+from .pairs import CANDIDATES
 
 CANDLE_FMT = ">IIIIIf"
 CANDLE_SIZE = struct.calcsize(CANDLE_FMT)
@@ -173,10 +175,17 @@ def download_h1(
     return h1.loc[(h1.index >= start_ts) & (h1.index <= end_ts)]
 
 
+def parse_cli_symbols(symbol: str | None, symbols: str | None) -> list[str]:
+    raw = symbols or symbol
+    if raw:
+        return [s.strip().upper() for s in str(raw).split(",") if s.strip()]
+    return list(CANDIDATES)
+
+
 def main(argv: list[str] | None = None) -> int:
     root = Path(__file__).resolve().parents[2]
     p = argparse.ArgumentParser(description="Download FX H1 from Dukascopy and write H4 CSV")
-    p.add_argument("--symbol", default="EURUSD")
+    p.add_argument("--symbol", default=None, help="Single pair. Default: compared pairs in CANDIDATES")
     p.add_argument("--symbols", default=None, help="Comma-separated list, overrides --symbol")
     p.add_argument("--start", default="2015-01-01")
     p.add_argument("--end", default=None)
@@ -186,7 +195,7 @@ def main(argv: list[str] | None = None) -> int:
 
     data_dir = root / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
-    symbols = [s.strip().upper() for s in (args.symbols or args.symbol).split(",") if s.strip()]
+    symbols = parse_cli_symbols(args.symbol, args.symbols)
     from output.status import tracked
 
     with tracked("feed", "download", out_dir=root / "reports", message=",".join(symbols)):
