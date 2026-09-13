@@ -34,6 +34,20 @@ def test_eurusd_h1_range_on_hourly_synthetic():
     assert len(eq) == len(h1)
 
 
+def test_h1_donchian_on_hourly_synthetic():
+    from strategy.cores.h1_donchian import H1DonchianStrategy
+
+    h1 = make_synthetic(n=3000, freq="1h", seed=8, trend=0.00002)
+    strat = H1DonchianStrategy()
+    assert strat.name == "h1_donchian"
+    prepared = strat.prepare(h1)
+    assert set(["signal", "stop_dist", "atr", "donch_hi", "trail_mult"]).issubset(prepared.columns)
+    assert float(prepared["trail_mult"].iloc[-1]) == 2.5
+    eq, _ = run_backtest(prepared, EngineConfig())
+    assert len(eq) == len(h1)
+    assert eq.iloc[-1] > 0
+
+
 def test_killzone_on_m5_synthetic():
     m5 = make_synthetic(n=4000, freq="5min", seed=4, vol=0.0003)
     prepared = KillZoneStrategy().prepare(m5)

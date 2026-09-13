@@ -1,12 +1,31 @@
 # Strategy cores
 
-採用コアと候補コアは、ここに置く。ライブはいま `donchian/` だけ。研究用の棄てたコアは単一モジュール（`ema_atr.py` など）。採用したらフォルダにする。候補の EURUSD H1 レンジ衛星は `eurusd_h1_range/`（DROP）。ダマシ拒否は `eurusd_h1_breakout_reject/`（既定オフ、グリッドしない）。
+採用コアと候補コアは、ここに置く。ライブはいま `donchian/` だけ。研究用の棄てたコアは単一モジュール（`ema_atr.py` など）。採用したらフォルダにする。
 
-新しいコアを足す手順:
+ロットや約定はこの層では扱わない。PnL は `account` が採点する。これは計測の整理であり売買助言ではない。
 
-1. `cores/<name>/` に `strategy.py`（`name`・`prepare` → `signal` / `stop_dist`）、`__init__.py`、`README.md` を置く。オーバーレイ評価は `cores/<name>/backtest/`。
+## ファミリと仕様（つぶした単位）
+
+先にファミリを置き、**落とすのはファミリ全体ではなく測った仕様**。Explore のスタンドアロンと、凍結ドンチャンへの衛星（加算 DD≤15%）は混ぜない。H1 チャネル抜けは H4 ドンチャンと同じトレンドフォローであり、別ファミリではない。
+
+年率 21.29%、DD 12.48%、PF 1.45、1004 本は **2015–2026（11.66 年）合成**。衛星加算で使った H4 年率 35.4%、DD 11.6% は **2021–2025**。混ぜない。11 年年率 21% はこれから毎年の見通しではない。
+
+| ファミリ | 測った仕様 | 判定 |
+|---|---|---|
+| トレンドフォロー（チャネル抜け） | H4 ドンチャン 3 本（USDCAD / USDJPY / GBPUSD、5%） | **ライブ凍結**。11.66 年 PF 1.45、合成 DD 12.48%、年率平均 21.29%。YAML `donchian: true`。JSON と 5% は触らない |
+| 同左 | H1 20 本チャネル＋ATR×2.5（ADX なし、2%） | **未ピン**。EURUSD / GBPUSD の 2021–2025 PF&lt;1。USDJPY lockbox 1.37 は学習 1.01・2026 0.91 と揃わない。ファミリ全体の Explore DROP ではない |
+| 同左 | 4H スクイーズ＋12H ピボット抜け（`bb_squeeze_pivot`） | **Explore DROP**。2021–2025 は全ペア PF&lt;1 |
+| レンジ逆張り | EURUSD H1 RSI フェード 1% 衛星 | **衛星 DROP**。スタンドアロン lockbox PF 1.55、加算 DD 15.4%（H4 単体と 15% キャップを超過）。Explore DROP ではない |
+| 同左 | 同ルール 4 ペア・2% | **未ピン**。学習・2021–2025・2026 は全ペア PF&gt;1。2026 は 16–41 本で確認に足りない。2% の DD は 32–55%。加算しない |
+| 同左 | 日足 BB±2σ＋セッション、1 ストレッチ 1 本（`mtf_bb_pivot` v4） | **Explore DROP**。学習 / 2026 が lockbox と揃わず、2026 は全ペア PF&lt;1 |
+| ダマシ拒否（失敗ブレイクのフェード） | EURUSD H1 ダマシ拒否 1% 衛星 | **衛星 DROP**。lockbox PF 0.82。加算で 2021–2025 の H4 年率 35.4%→35.2%、DD 11.6%→12.2% |
+| ドンチャンへのオーバーレイ | レジーム / H1 整列 / 継続 / 構造 / Kill Zone / イベント停止 / 相関スキップ など | **Frozen improve DROP**（各行は `donchian/README.md`）。夜の `account.veto` はシグナルを切らない通知だけ |
+
+ライブ既定は `donchian` のみ。他コアの YAML は `false`。拒否リストは年率を上げない。
+
+## 新しいコアを足す手順
+
+1. `cores/<name>/` に `strategy.py`（`name`・`prepare` → `signal` / `stop_dist`）、`__init__.py`、`README.md` を置く。評価は `cores/<name>/backtest/`。
 2. `catalog.py` の `STRATEGIES` に登録する。
 3. `config.yaml` の `cores.<name>` を足す（既定は `false`）。
-4. 学習 &lt;2021 / 検証 2021–2025、同じエンジン・コストでドンチャン3本ブックと比較する。検証 PF がコア未満、またはブックの年率・CAGR・DD が悪化したら棄てる。
-
-ロットや約定はこの層では扱わない。PnL は `account` が採点する。
+4. **Explore:** スタンドアロンで測る。ライブドンチャン冊との add-on は、そのコアをピンしてから Frozen improve。

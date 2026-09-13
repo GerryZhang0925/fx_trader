@@ -7,7 +7,8 @@ from account.books import (
     stacking_conflict,
 )
 from account.intent import desired_action
-from account.books import DONCHIAN_H4, StackingPolicy
+from account.books import DONCHIAN_H4, StackingPolicy, load_venues
+from account.settings import load_config
 
 
 def test_round_lots_never_rounds_up_past_min():
@@ -35,3 +36,13 @@ def test_two_sleeves_same_symbol_is_book_conflict():
     b = Sleeve("h1", "paper", "range", ("GBPUSD",), 1.0)
     assert stacking_conflict([a, b], "GBPUSD") == ["h4", "h1"]
     assert stacking_conflict([a, b], "USDJPY") == []
+
+
+def test_book_uses_fxcm_demo_not_oanda():
+    venues = load_venues(load_config())
+    assert "oanda_practice" not in venues
+    fx = venues["fxcm_demo"]
+    assert fx.kind == "demo"
+    assert fx.connector == "fxcm_demo"
+    assert fx.currency == "USD"
+    assert venues["paper_research"].kind == "paper"

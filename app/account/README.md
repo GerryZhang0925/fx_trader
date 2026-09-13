@@ -17,7 +17,7 @@ Pipeline stays **feed → strategy → account → output**. Account is one modu
 |---|---|---|---|
 | 研究 PnL | 確定バーで判断、次バー始値＋半スプレッド＋0.2 slip。サイズは従来どおり `units = risk / stop_dist` | `engine.py` `risk.py` `metrics.py` `backtest/` | **採点式は凍らせる**（採用レポートと一致させる） |
 | ブック | 会場口座・スリーブ・スタッキング・証拠金通貨・ロット刻み | `books.py` `money.py` `intent.py` | 提案に id を載せる。コネクタはまだ呼ばない |
-| 会場アダプタ | デモ／リアルの参照と発注 | `venues/oanda.py`（Practice は **GET のみ**） | `run.py` からは呼ばない。`python -m account.venues` で接続テスト |
+| 会場アダプタ | デモ／リアルの参照と発注 | `venues/fxcm.py`（**GET のみ**）。`oanda.py` はブックから外した | `run.py` からは呼ばない。`python -m account.venues` |
 
 ## 会場口座とスリーブ
 
@@ -46,20 +46,21 @@ Pipeline stays **feed → strategy → account → output**. Account is one modu
 
 これから先の H4 について、エンジンの `entry_time`（次バー始値）とデモのチケット時刻を突合する。業者テスターで 2015–2026 を流して PF 1.45 を再現することは目標にしない。
 
-拒否リスト（指標・スプレッド・ブック停止）は会場口座の `halted`。新エントリーは作らない。Telegram は通知だけ。
+拒否リスト（指標・スプレッド・H4 ブック停止）は会場口座の `halted` と `account.veto`。新エントリーは作らない。Telegram は発火時だけ。`python -m account.veto`。固定 13:00–17:00 UTC は使わない（DST 重なり）。日次は **R**（`daily_r <= -2`）。衛星の連敗は見ない。イベント停止をシグナルに掛けるオーバーレイは DROP のまま。
 
-## OANDA fxTrade Practice
+## FXCM demo
 
-デモ会場 `oanda_practice`（`kind: demo`, `connector: oanda_practice`）。ホストは `https://api-fxpractice.oanda.com` のみ。発注エンドポイントは実装していない。
+デモ会場 `fxcm_demo`（`kind: demo`, `connector: fxcm_demo`）。ホストは `https://api-demo.fxcm.com` のみ。HTTP の前に Socket.IO の `sid` が要る（`Authorization: Bearer {sid}{token}`）。発注エンドポイントは実装していない。`oanda_practice` はブックから外した。
+
+Trading Station Web 3.0 には Token Management が無い。40 桁 hex が取れたら環境変数だけに入れる。YAML の `account_id` はデモ表示番号（`03534103`）。トークンは書かない。
 
 ```bash
-export OANDA_API_TOKEN="..."          # practice portal の Personal Access Token
-export OANDA_ACCOUNT_ID="..."         # 口座が複数あるとき
+export FXCM_API_TOKEN="..."           # 40 桁 hex。YAML に書かない
 export PYTHONPATH=app
-python -m account.venues              # 残高・建玉の GET。注文しない
+python -m account.venues              # sid + 残高・建玉の GET。注文しない
 ```
 
-トークンは環境変数だけ。YAML に書かない。採用ドンチャンのスリーブは `paper_research` のまま。Practice で 11 年バックテストはしない。
+採用ドンチャンのスリーブは `paper_research` のまま（研究エンジンの次バー）。デモで 11 年バックテストはしない。`run.py` は発注しない。
 
 ## Config
 

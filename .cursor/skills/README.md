@@ -10,7 +10,7 @@ Installed under this folder. Cursor loads each `SKILL.md` automatically.
 | trading-strategy-review | https://github.com/Viprasol-Tech/trading-strategy-review |
 | api-design-skills | https://github.com/he8um/api-design-skills |
 | software-structure | local |
-| technical-research | local index for TA overlays |
+| technical-research | local index; Explore new cores vs Frozen improve |
 
 ## Technical / ICT (from SKE-Labs)
 
@@ -28,4 +28,6 @@ Risk overlays: `trailing-stop`, `partial-profit-taking`, `risk-reward-ratio`, `c
 
 FX context: `economic-calendar-trading`, `market-correlation-trading`
 
-Omitted: crypto, equity earnings/insider, scalping, VWAP/volume-profile (weaker fit for this H4 FX kit).
+`fx-research-protocol` has two modes: **Explore** (new core — do not score against the live Donchian book) and **Frozen improve** (pinned spec only). Live Donchian JSON and 5% stay frozen in both.
+
+Omitted from the SKE-Labs pack: crypto, equity earnings/insider, scalping, VWAP/volume-profile.

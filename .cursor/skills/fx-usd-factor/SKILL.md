@@ -1,9 +1,9 @@
 ---
 name: fx-usd-factor
 description: >-
-  FX book construction around the USD factor. Use when adding pairs, a second
-  timeframe core, EURUSD/GBPUSD overlap, correlation gates, or claiming MTF
-  diversification.
+  FX USD-factor map for this kit. Use when adding pairs, a second timeframe,
+  EURUSD/GBPUSD overlap, or claiming MTF diversification. Explore cores may
+  use any pair; Frozen improve vs live Donchian keeps the live three.
 ---
 
 # FX USD factor (this kit)
@@ -13,20 +13,6 @@ not diversify if the payoff is still USD trend-following.
 
 > Educational — not financial advice.
 
-## Live book (why these three)
-
-USDCAD / USDJPY / GBPUSD were kept for **strategy** correlation under 0.7, not
-because every major "needs a core". Pair-price correlation can still spike in stress.
-
-Dropped: EURUSD (OOS PF ~1.01), AUDUSD (no test PF ≥ 1.2 cell), NZDUSD (test PF ~1.06, AUD corr), USDCHF (book DD cap).
-
-## Do not
-
-- Put GBPUSD on H4 Donchian **and** an H1/M15 satellite.
-- Assign EURUSD/AUDUSD to a new TF as if the instrument gained edge.
-- Call HalfTrend + Donchian "two factors" — both ATR breakout trend-follow.
-- Add M15+H1+H4 expected returns. Blend correlated streams; check combined DD.
-
 ## USD map (signs flip with quote)
 
 | Position | Rough USD |
@@ -35,14 +21,28 @@ Dropped: EURUSD (OOS PF ~1.01), AUDUSD (no test PF ≥ 1.2 cell), NZDUSD (test P
 | Long EURUSD / GBPUSD / AUDUSD | Short USD |
 | Short EURUSD after an upside break | Long USD |
 
-Fading EURUSD breakouts **while H4 ADX ≥ 25** often aligns with USDJPY Donchian longs. Range-only EURUSD (ADX < 20) is the regime that *can* be low-corr (RSI fade daily corr was about −0.05) — that satellite still failed the DD cap.
+Report this map for a new core. Do not refuse EURUSD, AUD, NZD, or H1 because they
+are "the same USD" — say so in the README and measure standalone (Explore) or
+combined (Frozen improve).
 
-## Gates
+## Live Donchian book (Frozen improve)
 
-- `max_corr: 0.7` on **strategy daily returns**, not price levels.
-- Report rolling corr and a ρ → 1 stress, not a single 60-day number.
-- MTF means one trade with HTF bias / primary setup / LTF timing. Three independent books are not MTF. H1 alignment on this Donchian book already dropped.
+USDCAD / USDJPY / GBPUSD were kept for **strategy** correlation under 0.7.
 
-## Add-on test
+Prior Donchian pair search (not an Explore ban): EURUSD H4 test PF ~1.01; AUDUSD no
+test PF ≥ 1.2 cell; NZDUSD test PF ~1.06 and AUD price corr; USDCHF book DD cap.
 
-Always: H4 3-pair equity vs H4 + new sleeve. DROP if yearly/CAGR/DD worsen or DD > 15%.
+On **this** pinned book only:
+
+- Do not put GBPUSD on H4 Donchian **and** a Donchian H1/M15 satellite.
+- Do not call HalfTrend + Donchian "two factors" as overlays on the same USD book.
+- Do not add M15+H1+H4 expected returns as if independent. Blend correlated streams.
+
+Gates for Frozen improve on this book: `max_corr: 0.7` on **strategy daily returns**;
+rolling corr and a ρ → 1 stress. Add-on: H4 3-pair vs H4 + new sleeve; DROP the
+sleeve if yearly/CAGR/DD worsen or DD > 15%.
+
+## Explore
+
+A new core may trade any pair/TF. Score it standalone. USD overlap is a risk
+comment, not a stop-work rule.

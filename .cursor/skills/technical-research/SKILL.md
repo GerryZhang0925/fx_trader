@@ -2,14 +2,15 @@
 name: technical-research
 description: >-
   Index of technical-analysis and kit research skills for fx_trader. Use when
-  proposing indicators, regimes, MTF, satellites, or overlays. Always pair with
-  fx-research-protocol and trading-strategy-review.
+  proposing indicators, regimes, MTF, satellites, overlays, or a new core.
+  Pair with fx-research-protocol (Explore vs Frozen improve).
 ---
 
 # Technical research (this kit)
 
-Playbooks in `.cursor/skills/` do **not** raise returns by themselves. Pair every
-idea with `fx-research-protocol` (freeze → lockbox once → add-on gate).
+Playbooks in `.cursor/skills/` do **not** raise returns by themselves. Pair with
+`fx-research-protocol`: **Explore** for a new core; **Frozen improve** only after
+that core's fundamentals are pinned.
 
 Do not copy public TradingView scripts. Keep next-bar fills and costs.
 
@@ -17,30 +18,49 @@ Do not copy public TradingView scripts. Keep next-bar fills and costs.
 
 | Goal | Skill |
 |---|---|
-| New core / satellite / "improve PF" | `fx-research-protocol` |
+| New core / hybrid / DL / "find another engine" | `fx-research-protocol` **Explore** |
+| Overlay or PF tweak on a **pinned** core | `fx-research-protocol` **Frozen improve** |
 | Spreads, H1 vs M15, DST, Dukascopy | `fx-microstructure` |
-| 5% vs 1%, Kelly, concurrent risk | `fx-position-sizing` |
-| EURUSD, second TF, USD overlap | `fx-usd-factor` |
+| Risk % / Kelly / concurrent book | `fx-position-sizing` |
+| USD overlap, pair map | `fx-usd-factor` |
 | Look-ahead, PBO, DSR | `trading-strategy-review` |
-| DD, ruin, book caps | `risk-management-review` |
+| DD, ruin | `risk-management-review` |
 
-## Donchian H4 overlays (already mostly DROP)
+## Indicator skills (Explore: allowed)
 
-| Goal | Skill | Note |
-|---|---|---|
-| Regime / vol | `market-regime-detection` | `not_squeeze` held pair PF, hurt book DD |
-| H1 timing | `multi-timeframe-analysis` | H1 side filter was no-op or worse |
-| Continuation | `breakout-trading`, `flag-pennant`, `momentum-trading` | RVOL helped PF, hurt DD |
-| Pullback alt | `pullback-trading`, `optimal-trade-entry`, `fibonacci-trading` | Test PF often < 1 |
-| Range satellite | `range-trading`, `mean-reversion`, `bollinger-bands` | EURUSD H1 RSI fade and false-break **DROP** |
-| Structure | `fair-value-gaps`, `liquidity-zones`, `order-blocks` | FVG PF up, book DD up |
-| Sessions | `kill-zones` | H4 overlap dropped; use DST helper not fixed UTC |
-| Exits | `trailing-stop`, `partial-profit-taking` | 1R 50% + ATR trail beat 2R/3R **on Donchian only** |
-| Book | `correlation-risk`, `market-correlation-trading`, `fx-usd-factor` | |
+Use these to **build** a new core. Do not refuse RSI, ATR, Donchian features, range,
+MTF, or structure because they failed as **Donchian overlays**.
+
+| Topic | Skill |
+|---|---|
+| Regime / vol | `market-regime-detection` |
+| H1 / MTF | `multi-timeframe-analysis` |
+| Continuation | `breakout-trading`, `flag-pennant`, `momentum-trading` |
+| Pullback | `pullback-trading`, `optimal-trade-entry`, `fibonacci-trading` |
+| Range / MR | `range-trading`, `mean-reversion`, `bollinger-bands` |
+| Structure | `fair-value-gaps`, `liquidity-zones`, `order-blocks` |
+| Sessions | `kill-zones` (DST helper, not fixed UTC) |
+| Exits | `trailing-stop`, `partial-profit-taking` |
+| Book / USD | `correlation-risk`, `market-correlation-trading`, `fx-usd-factor` |
+
+## Donchian H4 overlays (Frozen improve only)
+
+History vs the **pinned** H4 3-pair. Do not use this table to block a new core.
+
+| Experiment | Note as Donchian overlay |
+|---|---|
+| `not_squeeze` | Pair PF held, book DD worse |
+| H1 side filter | No-op or worse |
+| RVOL continuation | PF up, book DD worse |
+| Pullback alt | Test PF often < 1 |
+| EURUSD H1 RSI fade / false-break | Failed as satellites on this book |
+| FVG | PF up, book DD up |
+| H4 kill-zone overlap | Dropped |
+| 1R 50% + ATR trail | Beat 2R/3R **on Donchian only** |
+| 10-point confluence size | Failed on Donchian |
 
 ## How to test
 
-1. Same engine, next-bar fill, documented costs. One frozen spec — no grid after looking.
-2. Train <2021 for mechanics. Lockbox 2021–2025 **once**. PF < 1 → drop.
-3. If lockbox PF ≥ 1, add 1% sleeve to the 5%×3 H4 book. Drop if yearly/CAGR/DD worsen or DD > 15%.
-4. Do not size up confluence grades (10-point sheet failed).
+**Explore:** next-bar + costs; standalone metrics; iterate until the user freezes the spec.
+
+**Frozen improve:** one frozen delta; train mechanics then one lockbox; add-on vs **that** book (live Donchian: 1% sleeve, DD 15%, no worse yearly/CAGR/DD).
