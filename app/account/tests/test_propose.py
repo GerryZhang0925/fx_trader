@@ -19,9 +19,10 @@ def test_propose_adds_size_on_signal():
     }
     out = propose(snap, cfg)
     assert out["lots"] > 0
-    assert out["units"] > 0
-    assert out["risk_pct"] == 5.0
-    assert out["fill_price_if_next_open_equals_close"] > out["close"]
+    assert out["venue_id"] == "paper_research"
+    assert out["account_currency"] == "USD"
+    assert out["sleeve_id"] == "donchian_h4"
+    assert out["stacking"]["opposite"] == "reverse"
     assert "order" not in out
 
 

@@ -26,7 +26,7 @@ H4 の確定バーで動く FX 研究キットです。戦略コアは並列に�
 | USDJPY | 25 | 1.5 | 15 | オフ |
 | GBPUSD | 60 | 3.0 | 24 | オン |
 
-USDJPY だけ学習期 PF 最大ではなく、学習＋検証リターン最大かつ検証 PF ≥ 1.2 のセットを採用している（`params/usdjpy_donchian.json` は `pinned: true`）。
+USDJPY のライブ JSON は学習＋検証リターン最大かつ検証 PF ≥ 1.2 で選んだセットを pin したまま（`params/usdjpy_donchian.json` は `pinned: true`）。F3 以降の最適化は学習期 PF のみ（検証 PF は下限）。`--force` なしでは上書きしない。
 
 採用しないもの: 2R/3R 固定利確、BE、遅延トレール、測度ターゲット、10 点コンフィデンスによるロット調整、エンガルフィング衛星、Kill Zone でドンチャンを間引く。いずれも同一エンジンでバックテストし、コア収益または PF が悪化した。
 
@@ -41,7 +41,8 @@ USDJPY だけ学習期 PF 最大ではなく、学習＋検証リターン最大
 | シグナル（発注なし） | `app/run.py`。`cores:` が true のコアを並列実行 |
 | コア ON/OFF | `app/strategy/config.yaml` の `cores:`。ダッシュボードは `reports/cores.json` |
 | H4 追記・ギャップ埋め | `app/feed/live.py` |
-| 次バー約定・部分利確・ATR トレイル・サイズ提案 | `app/account/engine.py` / `propose.py` |
+| 次バー約定・部分利確・ATR トレイル・サイズ提案 | `app/account/engine.py` / `propose.py`（研究採点は凍結） |
+| 会場口座・スリーブ・証拠金通貨 | `app/account/books.py` / `money.py` / `intent.py`。説明は `app/account/README.md` |
 | 日次停止・サイズ | `app/account/risk.py` |
 | コンソール / Telegram / ローカル HTML | `app/output/` |
 | 3 通貨合成バックテスト | `app/account/backtest/run_portfolio.py`（`python -m account.backtest`） |
@@ -87,7 +88,7 @@ USDJPY だけ学習期 PF 最大ではなく、学習＋検証リターン最大
 | Calmar | 1.63 |
 | 純損益 | +771,230（+771.2%） |
 
-チェックリスト（合成）: 年数 / PF ≥ 1.3 / 合成 DD ≤ 15% / Sharpe ≥ 0.6 は PASS。トレード数は 10 年 500–600 の目安を上回る（回数を減らすと利益も減るため、間引きは採用していない）。
+チェックリスト（合成）: 年数 / PF ≥ 1.3 / 合成 DD ≤ 15% / Sharpe ≥ 0.6 は PASS。トレード数は 10 年 500–600 の目安を上回る（回数を減らすと利益も減るため、間引きは採用していない）。上表の年率 21% は学習期と検証期の混在であり、毎年そうなる見通しではない（下記の考察）。
 
 単体の最大 DD は合成より大きい（GBP 約 31%、JPY 約 25%、CAD 約 24%）。ブックとして見る前提。
 
@@ -103,6 +104,22 @@ USDJPY だけ学習期 PF 最大ではなく、学習＋検証リターン最大
 
 TradingView のストラテジーテスターは 1 銘柄ずつ・資金も別なので、3 回の結果を足してもこの合成数字にはならない。
 
+## オーバーフィットに関する考察
+
+オーバーフィットしているのは **採用 3 本そのものというより、パラメータを選んだ探索** です。ペアあたり 792 セル、検証 2021–2025 を選定フィルタに使い、USDJPY では検証リターンまで目的関数に入っていた。試行を増やせば学習期の見かけの Sharpe は上がるので、その数字や 11 年年率 21% を「これから毎年実現する期待値」にはできません。未使用の 2026-01〜08（約 0.66 年）ではブック年率は約 7%、PF 1.20、DD 11.8% でした。これも 8 か月・少数本の 1 回測りであり、7% が新しい見通しというわけではありません。
+
+一方で、採用 3 本が学習期だけの偽物、とまでは言い切れません。3 本の検証 PF は 1.2 超、同じ探索で EURUSD / AUDUSD / NZDUSD / USDCHF の 4 本は落ち、ウォークフォワードの平均窓 PF も持ちます。エッジがゼロという意味ではありません。ルックアヘッド（次バー始値）とコスト（1 pip + 0.2 slip）はこの欠陥ではありません。
+
+**いまから長さ・ATR・ADX を学習し直すと、何を最適化しているか分からなくなります。** 短い窓、見たあとの検証期、学習 Sharpe でピンを動かすのは成績の修正ではなく、同じデータの再漁です。USDJPY の学習期最大（20 / 1.5 / 25 / フィルタオン）はライブピン（25 / 1.5 / 15 / オフ）と違うが、ピンは維持する。2026 ホールドアウトでの焼き比べもしない。5% リスクも、21% や学習 Sharpe からは上げない。
+
+過去の探索を消して 21% に近づける方法はありません。状況を良くするのは次だけです。
+
+1. **期待を変える。** 計画に使うのは 11 年年率 21% ではなく、凍結ルールのこれからの期間の実績。
+2. **本当に未使用の時間を積む。** 2021–2025 も 2026-01〜08 も、もう選定か評価に使っている。本体は凍結したルールをデモ／ライブで前に進めること。セル収益を残して公式 PBO を出すのは診断であり、年率は増えない。
+3. **足すなら別ファミリだけ。** 同じ USD トレンドの二階建てや、落ちた EURUSD H1 平均回帰の再試行はしない。仕様を先に書き、学習と lockbox を一度だけ測り、H4 3 本＋衛星 1% の合成 DD が 15% を超えず悪化もしないこと。
+
+診断の数値と F1–F5 は `app/strategy/cores/donchian/README.md` と `reports/overfit_adopted.md`。再計算は `python -m strategy.cores.donchian.backtest.eval_overfit`。新規ペア探索だけ `--compact`（90 セル）。これは手法の点検であり、売買助言ではありません。
+
 ## 構成
 
 ```
@@ -113,7 +130,7 @@ fx_trader/
     run.py              feed → strategy → account → output
     feed/               データ取得（download / live）
     strategy/           価格分析。採用コアは strategy/cores/<name>/（評価は cores/<name>/backtest/）
-    account/            建値・サイズ。成績バックテストは account/backtest/
+    account/            建値・サイズ・会場口座とスリーブ。成績バックテストは account/backtest/
     output/             コンソール / Telegram / ローカル HTML
   params/               ペア別 Donchian JSON
   data/                 CSV（コミットしない）
@@ -148,6 +165,10 @@ python run.py --offline --serve   # http://127.0.0.1:18080  (run status + propos
 # 配管確認（合成データ。成績評価には使わない）
 python -m account.backtest.run_backtest --strategy donchian --synthetic
 
+# OANDA Practice 接続テスト（参照のみ。発注しない）
+# export OANDA_API_TOKEN=...
+# python -m account.venues
+
 python -m pytest -q
 ```
 
@@ -178,5 +199,5 @@ PR では **feed → strategy → account → output** の単体テストのあ�
 ## やらないこと
 
 - 公開 Pine の再配布
-- ブローカー API や自動発注（`run.py` はサイン表示のみ）
-- 目標達成のための過剰最適化
+- ブローカー API や自動発注（`run.py` はサイン表示のみ。会場コネクタは default off）
+- 目標達成のための過剰最適化（採用 JSON の再グリッド、短い窓や学習 Sharpe でのピン変更、11 年年率 21% からのサイズアップ）

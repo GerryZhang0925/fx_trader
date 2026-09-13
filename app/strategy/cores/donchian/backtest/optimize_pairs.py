@@ -21,6 +21,12 @@ from feed.loader import load_csv  # noqa: E402
 from account.engine import run_backtest  # noqa: E402
 from account.metrics import compute_metrics  # noqa: E402
 from strategy.cores.donchian.backtest.optimize_donchian import TRAIN_END, TEST_END, _row, grid_params  # noqa: E402
+from strategy.cores.donchian.backtest.select_grid import (  # noqa: E402
+    as_bool,
+    select_row,
+    selection_label,
+    pf_floor_for,
+)
 from feed.pairs import CANDIDATES, pip_size  # noqa: E402
 from account.settings import engine_from_config, load_config  # noqa: E402
 from strategy.cores.donchian import DonchianParams, DonchianStrategy  # noqa: E402
@@ -39,13 +45,15 @@ def _metrics_dict(m) -> dict:
     }
 
 
-def optimize_symbol(symbol: str, h4: pd.DataFrame, cfg: dict) -> tuple[pd.DataFrame, dict]:
+def optimize_symbol(
+    symbol: str, h4: pd.DataFrame, cfg: dict, *, compact: bool = False
+) -> tuple[pd.DataFrame, dict]:
     engine = engine_from_config(cfg, pip_size=pip_size(symbol))
     initial = float(cfg.get("initial_equity", 100000))
     base = {**cfg.get("donchian", {}), **(cfg.get("portfolio", {}).get("donchian") or {})}
     train_mask = h4.index < TRAIN_END
     test_mask = (h4.index >= TRAIN_END) & (h4.index < TEST_END)
-    combos = list(grid_params(base))
+    combos = list(grid_params(base, compact=compact))
     rows = []
     for i, params in enumerate(combos, start=1):
         prepared = DonchianStrategy(params).prepare(h4)
@@ -65,19 +73,15 @@ def optimize_symbol(symbol: str, h4: pd.DataFrame, cfg: dict) -> tuple[pd.DataFr
         if i % 80 == 0 or i == len(combos):
             print(f"  {symbol} grid {i}/{len(combos)}", flush=True)
     grid = pd.DataFrame(rows)
-    robust = grid[(grid["test_profit_factor"] >= 1.0) & (grid["train_max_drawdown_pct"] <= 20.0)]
-    pool = robust if len(robust) else grid
-    best_row = pool.sort_values(
-        ["train_profit_factor", "test_profit_factor", "train_avg_r"],
-        ascending=False,
-    ).iloc[0]
+    floor = pf_floor_for(symbol)
+    best_row = select_row(grid, test_pf_floor=floor)
     best_params = DonchianParams.from_dict(
         {
             **base,
             "length": int(best_row.length),
             "atr_mult": float(best_row.atr_mult),
             "adx_min": float(best_row.adx_min),
-            "use_atr_filter": bool(best_row.use_atr_filter),
+            "use_atr_filter": as_bool(best_row.use_atr_filter),
             "use_adx_filter": True,
             "partial_frac": 0.5,
             "partial_r": 1.0,
@@ -89,7 +93,7 @@ def optimize_symbol(symbol: str, h4: pd.DataFrame, cfg: dict) -> tuple[pd.DataFr
     m_all = compute_metrics(eq_all, td_all, initial)
     payload = {
         "symbol": symbol,
-        "selection": "max train PF among test PF>=1.0 and train DD<=20%",
+        "selection": selection_label(floor),
         "params": asdict(best_params),
         "train": {k.replace("train_", ""): best_row[k] for k in best_row.index if str(k).startswith("train_")},
         "test": {k.replace("test_", ""): best_row[k] for k in best_row.index if str(k).startswith("test_")},
@@ -105,6 +109,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--data", type=Path, default=None)
     p.add_argument("--out", type=Path, default=None)
     p.add_argument("--force", action="store_true", help="Overwrite pinned {symbol}_donchian.json")
+    p.add_argument(
+        "--compact",
+        action="store_true",
+        help="90-cell grid for new searches (F2). Default 792 is the adopted historical search.",
+    )
     args = p.parse_args(argv)
     cfg = load_config(args.config)
     data_dir = args.data or (ROOT / "data")
@@ -133,7 +142,7 @@ def _optimize(args, cfg, data_dir: Path, out_dir: Path, symbols: list[str]) -> i
                 continue
         print(f"=== optimize {symbol} ===", flush=True)
         h4 = load_csv(csv_path)
-        grid, payload = optimize_symbol(symbol, h4, cfg)
+        grid, payload = optimize_symbol(symbol, h4, cfg, compact=args.compact)
         grid.to_csv(out_dir / f"{symbol.lower()}_grid.csv", index=False)
         json_path = out_dir / f"{symbol.lower()}_donchian.json"
         json_path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")

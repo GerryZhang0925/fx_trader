@@ -1,37 +1,46 @@
 ---
 name: technical-research
 description: >-
-  Index of technical-analysis and ICT skills for fx_trader. Use when trying
-  to raise Donchian/H4 FX returns with indicators, regimes, MTF, FVG, or
-  pattern overlays. Always pair with trading-strategy-review and train/test splits.
+  Index of technical-analysis and kit research skills for fx_trader. Use when
+  proposing indicators, regimes, MTF, satellites, or overlays. Always pair with
+  fx-research-protocol and trading-strategy-review.
 ---
 
 # Technical research (this kit)
 
-Skills in `.cursor/skills/` are reference playbooks. They do **not** guarantee higher
-returns. Test every overlay on train `<2021` / test `2021–2025` before changing defaults.
+Playbooks in `.cursor/skills/` do **not** raise returns by themselves. Pair every
+idea with `fx-research-protocol` (freeze → lockbox once → add-on gate).
 
-Do not copy public TradingView scripts. Keep next-bar fills and costs. Prefer overlays
-that keep trade count unless the user allows fewer trades.
+Do not copy public TradingView scripts. Keep next-bar fills and costs.
 
-## Try first on this Donchian book
+## Do this first
 
-| Goal | Skill | Why it fits |
+| Goal | Skill |
+|---|---|
+| New core / satellite / "improve PF" | `fx-research-protocol` |
+| Spreads, H1 vs M15, DST, Dukascopy | `fx-microstructure` |
+| 5% vs 1%, Kelly, concurrent risk | `fx-position-sizing` |
+| EURUSD, second TF, USD overlap | `fx-usd-factor` |
+| Look-ahead, PBO, DSR | `trading-strategy-review` |
+| DD, ruin, book caps | `risk-management-review` |
+
+## Donchian H4 overlays (already mostly DROP)
+
+| Goal | Skill | Note |
 |---|---|---|
-| Trade only when trend/vol agrees | `market-regime-detection` | Uses Donchian, ATR, BB width — same family as the core |
-| H4 bias, H1/M15 timing | `multi-timeframe-analysis` | H1 CSVs exist; M5 does not |
-| Breakout continuation | `breakout-trading`, `flag-pennant`, `momentum-trading` | Core is Donchian breakout |
-| Pullback instead of breakout | `pullback-trading`, `optimal-trade-entry`, `fibonacci-trading` | Different entry; do not mix blindly with breakout scores |
-| Range satellite | `range-trading`, `mean-reversion`, `bollinger-bands` | Prior engulfing satellite had almost no edge |
-| Structure extras | `fair-value-gaps`, `liquidity-zones`, `order-blocks`, `market-structure-shift` | Original simplified versions already in Python |
-| Sessions | `kill-zones` | Score on H4 overlap only unless M5 is downloaded |
-| Exits | `trailing-stop`, `partial-profit-taking`, `risk-reward-ratio` | Baseline 1R+ATR trail already won vs 2R/3R |
-| Book construction | `correlation-risk`, `market-correlation-trading` | CAD/JPY/GBP were chosen for low strategy corr |
-| Honesty check | `trading-strategy-review` | Look-ahead, overfit, costs, too few trades |
+| Regime / vol | `market-regime-detection` | `not_squeeze` held pair PF, hurt book DD |
+| H1 timing | `multi-timeframe-analysis` | H1 side filter was no-op or worse |
+| Continuation | `breakout-trading`, `flag-pennant`, `momentum-trading` | RVOL helped PF, hurt DD |
+| Pullback alt | `pullback-trading`, `optimal-trade-entry`, `fibonacci-trading` | Test PF often < 1 |
+| Range satellite | `range-trading`, `mean-reversion`, `bollinger-bands` | EURUSD H1 RSI fade and false-break **DROP** |
+| Structure | `fair-value-gaps`, `liquidity-zones`, `order-blocks` | FVG PF up, book DD up |
+| Sessions | `kill-zones` | H4 overlap dropped; use DST helper not fixed UTC |
+| Exits | `trailing-stop`, `partial-profit-taking` | 1R 50% + ATR trail beat 2R/3R **on Donchian only** |
+| Book | `correlation-risk`, `market-correlation-trading`, `fx-usd-factor` | |
 
 ## How to test
 
-1. Same engine (`engine.py`), same costs, per-pair JSON params.
-2. Report train PF, test PF, trades, daily Sharpe, Calmar, max DD.
-3. Reject if test PF < 1.0 or if the overlay only helps in-sample.
-4. Do not size up A+ confluence scores unless grade-level avg R is higher (prior 10-point sheet failed).
+1. Same engine, next-bar fill, documented costs. One frozen spec — no grid after looking.
+2. Train <2021 for mechanics. Lockbox 2021–2025 **once**. PF < 1 → drop.
+3. If lockbox PF ≥ 1, add 1% sleeve to the 5%×3 H4 book. Drop if yearly/CAGR/DD worsen or DD > 15%.
+4. Do not size up confluence grades (10-point sheet failed).

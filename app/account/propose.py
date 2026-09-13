@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .books import load_venues, sleeve_for
 from .engine import CostConfig
 from .risk import lots_from_units, position_units
 from .settings import engine_from_config
@@ -29,7 +30,16 @@ def propose(snapshot: dict, cfg: dict, *, risk_pct: float | None = None) -> dict
     """Attach account overlay. Does not send or place anything."""
     port = cfg.get("portfolio", {})
     symbol = str(snapshot.get("symbol") or "")
-    pct = float(risk_pct if risk_pct is not None else risk_pct_for(symbol, port))
+    core = str(snapshot.get("core") or "donchian")
+    sleeve = sleeve_for(cfg, core=core, symbol=symbol)
+    venues = load_venues(cfg)
+    venue = venues.get(sleeve.venue_id) or next(iter(venues.values()))
+    if risk_pct is not None:
+        pct = float(risk_pct)
+    elif cfg.get("sleeves"):
+        pct = float(sleeve.risk_pct)
+    else:
+        pct = float(risk_pct_for(symbol, port))
     engine = engine_from_config(cfg, pip_size=snapshot.get("pip_size"), risk_pct=pct)
     direction = int(snapshot.get("signal") or 0)
     close = snapshot.get("close")
@@ -55,6 +65,15 @@ def propose(snapshot: dict, cfg: dict, *, risk_pct: float | None = None) -> dict
             "risk_amount": risk_amount,
             "spread_pips": float(engine.cost.spread_pips),
             "slippage_pips": float(engine.cost.slippage_pips),
+            "venue_id": venue.id,
+            "venue_kind": venue.kind,
+            "connector": venue.connector,
+            "account_currency": venue.currency,
+            "sleeve_id": sleeve.id,
+            "stacking": {
+                "same_direction": sleeve.stacking.same_direction,
+                "opposite": sleeve.stacking.opposite,
+            },
         }
     )
     return out

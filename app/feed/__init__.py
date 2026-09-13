@@ -10,7 +10,7 @@ from .live import (
     utc_now,
 )
 from .loader import load_csv, load_h4, load_m5, make_synthetic, resample_ohlcv
-from .pairs import CANDIDATES, KEEP_BOTH, RECOMMENDED, pip_size
+from .pairs import CANDIDATES, KEEP_BOTH, RECOMMENDED, pip_size, quote_currency
 
 __all__ = [
     "CANDIDATES",
@@ -27,6 +27,7 @@ __all__ = [
     "make_synthetic",
     "next_poll_time",
     "pip_size",
+    "quote_currency",
     "resample_ohlcv",
     "retry_call",
     "update_symbol",

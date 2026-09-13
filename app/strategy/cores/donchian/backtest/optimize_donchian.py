@@ -54,11 +54,24 @@ def meets(m, pf: float, dd: float, sharpe: float, min_trades: int | None, max_tr
     return True
 
 
-def grid_params(base: dict):
-    # Shorter lengths + ATR-filter off are needed to reach 500-600 trades.
-    lengths = list(range(20, 56, 5)) + [60]
-    atr_mults = [1.5, 2.0, 2.5, 3.0]
-    adx_mins = range(15, 26)
+# Adopted search: 9 lengths x 4 ATR x 11 ADX x 2 ATR-filter = 792.
+# Compact (F2): 5 x 3 x 3 x 2 = 90. Use for new pair searches; do not retune live JSON from it.
+COMPACT_LENGTHS = (20, 25, 40, 55, 60)
+COMPACT_ATR_MULTS = (1.5, 2.5, 3.0)
+COMPACT_ADX_MINS = (15, 20, 24)
+
+
+def grid_params(base: dict | None = None, *, compact: bool = False):
+    # Shorter lengths + ATR-filter off are needed to reach 500-600 trades on the full grid.
+    base = dict(base or {})
+    if compact:
+        lengths = list(COMPACT_LENGTHS)
+        atr_mults = list(COMPACT_ATR_MULTS)
+        adx_mins = list(COMPACT_ADX_MINS)
+    else:
+        lengths = list(range(20, 56, 5)) + [60]
+        atr_mults = [1.5, 2.0, 2.5, 3.0]
+        adx_mins = range(15, 26)
     atr_filters = [False, True]
     for length, atr_mult, adx_min, use_atr in itertools.product(lengths, atr_mults, adx_mins, atr_filters):
         yield DonchianParams.from_dict(
@@ -76,7 +89,7 @@ def grid_params(base: dict):
         )
 
 
-def run_grid(h4: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+def run_grid(h4: pd.DataFrame, cfg: dict, *, compact: bool = False) -> pd.DataFrame:
     engine = engine_from_config(cfg)
     initial = float(cfg.get("initial_equity", 100000))
     targets = cfg.get("targets", {})
@@ -88,7 +101,7 @@ def run_grid(h4: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     base = dict(cfg.get("donchian", {}))
     train_mask = h4.index < TRAIN_END
     test_mask = (h4.index >= TRAIN_END) & (h4.index < TEST_END)
-    combos = list(grid_params(base))
+    combos = list(grid_params(base, compact=compact))
     rows = []
     for i, params in enumerate(combos, start=1):
         prepared = DonchianStrategy(params).prepare(h4)
@@ -132,6 +145,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--csv", type=Path, default=None)
     p.add_argument("--config", type=Path, default=None)
     p.add_argument("--out", type=Path, default=None)
+    p.add_argument(
+        "--compact",
+        action="store_true",
+        help="90-cell grid for new searches (F2). Default 792 is the adopted historical search.",
+    )
     args = p.parse_args(argv)
     from output.status import tracked
 
@@ -151,7 +169,7 @@ def _grid(args, out_dir: Path) -> int:
     csv_path = args.csv or (ROOT / "data" / "eurusd_h4.csv")
     h4 = load_csv(csv_path)
     print(f"Loaded {len(h4)} H4 bars {h4.index[0]} -> {h4.index[-1]}")
-    grid = run_grid(h4, cfg)
+    grid = run_grid(h4, cfg, compact=args.compact)
     out_dir.mkdir(parents=True, exist_ok=True)
     grid_path = out_dir / "donchian_grid.csv"
     grid.to_csv(grid_path, index=False)
@@ -175,7 +193,10 @@ def _grid(args, out_dir: Path) -> int:
         "Prioritize PF and average R. 500-600 trades over ~10y is enough.",
         "Targets are a checklist, not a guarantee.",
         "",
-        f"- Combos: {len(grid)} (length 20-60 / ATR 1.5-3.0 / ADX 15-25 / ATR-filter on|off)",
+        f"- Combos: {len(grid)}"
+        + (" (compact F2: length 20/25/40/55/60, ATR 1.5/2.5/3.0, ADX 15/20/24, ATR-filter on|off)"
+           if args.compact
+           else " (length 20-60 / ATR 1.5-3.0 / ADX 15-25 / ATR-filter on|off)"),
         f"- Full pass (PF>={pf_t}, DD<={dd_t}%, Sharpe>={sh_t}, trades>={min_tr}): {len(band)}",
         f"- In preferred trade band ({min_tr}-{max_tr}): {len(trade_band)}",
         f"- Train and test both pass: {len(oos_ok)}",

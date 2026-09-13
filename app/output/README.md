@@ -16,4 +16,4 @@ Fixture proposals → Markdown/HTML. No live network in tests.
 
 ## Do not
 
-Compute signals or size. No broker.
+Halt *messages* (Telegram) are output. Halt *state* is the venue account in `account`. No broker.

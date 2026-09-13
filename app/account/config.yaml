@@ -27,6 +27,39 @@ portfolio:
   portfolio_sharpe: 0.6
   portfolio_max_dd: 15.0
 
+# Venue account = one login at one tool. Sleeve = capital slice inside that login.
+# run.py still does not place orders. Research engine sizing is unchanged.
+venues:
+  paper_research:
+    kind: paper
+    connector: engine
+    currency: USD
+    lot_size: 100000.0
+    lot_step: 0.01
+    min_lot: 0.01
+    halted: false
+  oanda_practice:
+    kind: demo
+    connector: oanda_practice
+    currency: USD
+    lot_size: 100000.0
+    lot_step: 0.01
+    min_lot: 0.01
+    halted: false
+    # Token: env OANDA_API_TOKEN. Account id: env OANDA_ACCOUNT_ID (optional if only one).
+    # python -m account.venues  (read-only ping, no orders)
+
+sleeves:
+  donchian_h4:
+    venue: paper_research
+    core: donchian
+    symbols: [USDCAD, USDJPY, GBPUSD]
+    risk_pct: 5.0
+    stacking:
+      one_position: true
+      same_direction: ignore
+      opposite: reverse
+
 upside:
   core_pairs: [USDCAD, USDJPY, GBPUSD]
   keep_baseline_exit: true

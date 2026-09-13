@@ -18,7 +18,7 @@ Live: enabled cores in `config.yaml` `cores:` run in parallel (`analyze` → `si
 
 ## Config
 
-`config.yaml`: Donchian and research defaults. USDJPY pinned JSON is not overwritten without `--force`.
+`config.yaml`: Donchian and research defaults. USDJPY pinned JSON is not overwritten without `--force`. New pair grids: `--compact` (90 cells). Selection sorts train PF only; test PF is a floor.
 
 ## Tests / backtest
 
@@ -28,4 +28,4 @@ Live: enabled cores in `config.yaml` `cores:` run in parallel (`analyze` → `si
 
 ## Do not
 
-Size positions or print to Telegram.
+Size positions, pick lots, or print to Telegram. Stacking (ignore same-direction / reverse opposite) is declared on the core spec; `account.intent` executes it.

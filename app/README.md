@@ -2,7 +2,7 @@
 
 Closed-bar Donchian proposals for USDCAD / USDJPY / GBPUSD.
 
-`run.py` calls **feed → strategy → account → output**. It does not place orders.
+`run.py` calls **feed → strategy → account → output**. It does not place orders. Account may attach venue/sleeve ids; connectors stay off.
 
 ```bash
 python run.py              # watch H4 closes
@@ -22,4 +22,4 @@ python run.py --offline --serve   # also http://127.0.0.1:18080 (status + propos
 
 ## Do not
 
-Talk to a broker, size from this folder (that is `account/`), or fetch prices here (that is `feed/`).
+Talk to a broker, size from this folder (that is `account/`), or fetch prices here (that is `feed/`). Venue logins belong in `account` config, not here.

@@ -36,6 +36,18 @@ def atr(df: pd.DataFrame, length: int = 14) -> pd.Series:
     return rma(true_range(df), length)
 
 
+def rsi(close: pd.Series, length: int = 14) -> pd.Series:
+    """Wilder RSI (Pine `ta.rsi`). Loss=0 with gain>0 is 100."""
+    delta = close.diff()
+    gain = rma(delta.clip(lower=0.0), length)
+    loss = rma((-delta).clip(lower=0.0), length)
+    rs = gain / loss.replace(0.0, np.nan)
+    out = 100.0 - (100.0 / (1.0 + rs))
+    out = out.where(loss != 0.0, 100.0)
+    both_zero = (gain == 0.0) & (loss == 0.0)
+    return out.where(~both_zero, 50.0)
+
+
 def donchian_prev(df: pd.DataFrame, length: int) -> tuple[pd.Series, pd.Series]:
     """Pine `ta.highest(high, length)[1]` / `ta.lowest(low, length)[1]`."""
     upper = df["high"].shift(1).rolling(length, min_periods=length).max()
@@ -94,3 +106,18 @@ def in_session(index: pd.DatetimeIndex, start: str, end: str, tz: str = "UTC") -
     else:
         mask = (minutes >= start_m) | (minutes < end_m)
     return pd.Series(mask, index=index)
+
+
+def in_london_ny_overlap(index: pd.DatetimeIndex) -> pd.Series:
+    """NY cash open through London cash close. DST via tz database, not a fixed UTC window."""
+    if index.tz is None:
+        idx = index.tz_localize("UTC")
+    else:
+        idx = index.tz_convert("UTC")
+    london = idx.tz_convert("Europe/London")
+    ny = idx.tz_convert("America/New_York")
+    london_m = np.array([ts.hour * 60 + ts.minute for ts in london])
+    ny_m = np.array([ts.hour * 60 + ts.minute for ts in ny])
+    in_london = (london_m >= 8 * 60) & (london_m < 16 * 60)
+    in_ny = (ny_m >= 8 * 60) & (ny_m < 17 * 60)
+    return pd.Series(in_london & in_ny, index=index)

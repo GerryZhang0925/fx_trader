@@ -57,7 +57,9 @@ class RiskState:
 
 
 def position_units(equity: float, risk_pct: float, stop_dist: float) -> float:
-    """Quote-currency PnL ≈ units * price_change. Size so a full stop ≈ risk_pct of equity."""
+    """Quote-currency PnL ≈ units * price_change (research engine).
+    Venue-account currency conversion is `account.money.units_for_risk` — not used here.
+    """
     if stop_dist <= 0 or equity <= 0:
         return 0.0
     risk_amount = equity * (risk_pct / 100.0)

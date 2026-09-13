@@ -5,6 +5,8 @@ cores:
   engulfing: false
   killzone: false
   confluence: false
+  eurusd_h1_range: false
+  eurusd_h1_breakout_reject: false
 
 donchian:
   length: 30
@@ -60,6 +62,27 @@ confluence:
   require_killzone: false
   ranging_adx_max: 20.0
   donchian_width_pct: 0.012
+
+eurusd_h1_range:
+  rsi_len: 14
+  rsi_os: 30.0
+  rsi_ob: 70.0
+  ema_center: 50
+  atr_len: 14
+  swing_len: 5
+  stop_buffer_atr: 0.5
+  adx_len: 14
+  h4_adx_max: 20.0
+  max_hold_bars: 20
+
+eurusd_h1_breakout_reject:
+  length: 20
+  ema_center: 50
+  atr_len: 14
+  stop_buffer_atr: 0.5
+  adx_len: 14
+  h4_adx_max: 20.0
+  max_hold_bars: 20
 
 walkforward:
   train_years: 3

@@ -8,7 +8,7 @@ python -m feed.download --start 2015-01-01
 # 1本だけなら --symbol USDCAD
 ```
 
-CSV lives in kit `data/`, not in this folder.
+Instrument spec (pip size, quote/base currency) lives in `pairs.py`. CSV lives in kit `data/`, not in this folder.
 
 ## Config
 

@@ -11,6 +11,7 @@ from strategy.cores.donchian.confidence import apply_confidence
 from strategy.cores.donchian import DonchianStrategy
 from strategy.cores.ema_atr import EmaAtrStrategy
 from strategy.cores.engulfing_rvol import EngulfingRvolStrategy
+from strategy.cores.eurusd_h1_range import EurusdH1RangeStrategy
 from strategy.cores.killzone import KillZoneStrategy
 
 
@@ -23,6 +24,14 @@ def test_each_strategy_prepares_and_backtests_synthetic():
         eq, trades = run_backtest(prepared, cfg)
         assert len(eq) == len(h4)
         assert eq.iloc[-1] > 0
+
+
+def test_eurusd_h1_range_on_hourly_synthetic():
+    h1 = make_synthetic(n=2000, freq="1h", seed=6)
+    prepared = EurusdH1RangeStrategy().prepare(h1)
+    assert set(["signal", "stop_dist", "atr", "h4_adx"]).issubset(prepared.columns)
+    eq, _ = run_backtest(prepared, EngineConfig())
+    assert len(eq) == len(h1)
 
 
 def test_killzone_on_m5_synthetic():

@@ -53,6 +53,7 @@ class Position:
     reason: str
     be_after_partial: bool
     trail_after_partial: bool
+    max_hold_bars: int
 
 
 @dataclass
@@ -68,6 +69,7 @@ class PendingEntry:
     be_after_partial: bool
     trail_after_partial: bool
     risk_mult: float
+    max_hold_bars: int
 
 
 def _fill_price(direction: int, raw: float, cost: CostConfig, is_entry: bool) -> float:
@@ -193,6 +195,11 @@ def run_backtest(df: pd.DataFrame, cfg: EngineConfig) -> tuple[pd.Series, pd.Dat
         if "risk_mult" in df.columns
         else np.ones(n, dtype=float)
     )
+    max_hold_a = (
+        pd.to_numeric(df["max_hold_bars"], errors="coerce").fillna(0).to_numpy(dtype=np.int32)
+        if "max_hold_bars" in df.columns
+        else np.zeros(n, dtype=np.int32)
+    )
     reasons = df["reason"].astype(str).to_numpy() if "reason" in df.columns else np.full(n, "")
     exit_sig = (
         df["exit_signal"].fillna(False).to_numpy(dtype=bool)
@@ -256,6 +263,7 @@ def run_backtest(df: pd.DataFrame, cfg: EngineConfig) -> tuple[pd.Series, pd.Dat
                         reason=pending.reason,
                         be_after_partial=pending.be_after_partial,
                         trail_after_partial=pending.trail_after_partial,
+                        max_hold_bars=pending.max_hold_bars,
                     )
                     equity -= _commission(units, cfg.cost)
                     risk_state.register_entry()
@@ -358,6 +366,7 @@ def run_backtest(df: pd.DataFrame, cfg: EngineConfig) -> tuple[pd.Series, pd.Dat
                     be_after_partial=bool(be_a[i]),
                     trail_after_partial=bool(trail_after_a[i]),
                     risk_mult=float(risk_mult_a[i]) if risk_mult_a[i] > 0 else 1.0,
+                    max_hold_bars=int(max_hold_a[i]) if max_hold_a[i] > 0 else 0,
                 )
         elif sig[i] != 0 and sig[i] != pos.direction:
             flatten_next = True
@@ -374,8 +383,11 @@ def run_backtest(df: pd.DataFrame, cfg: EngineConfig) -> tuple[pd.Series, pd.Dat
                     be_after_partial=bool(be_a[i]),
                     trail_after_partial=bool(trail_after_a[i]),
                     risk_mult=float(risk_mult_a[i]) if risk_mult_a[i] > 0 else 1.0,
+                    max_hold_bars=int(max_hold_a[i]) if max_hold_a[i] > 0 else 0,
                 )
         elif exit_sig[i] or (pos.direction > 0 and exit_long[i]) or (pos.direction < 0 and exit_short[i]):
+            flatten_next = True
+        elif pos.max_hold_bars > 0 and (i - pos.entry_i) >= pos.max_hold_bars:
             flatten_next = True
 
         mtm = 0.0 if pos is None else pos.direction * pos.units * (c[i] - pos.entry_price) + pos.realized_pnl
