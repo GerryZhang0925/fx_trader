@@ -116,9 +116,24 @@ TradingView のストラテジーテスターは 1 銘柄ずつ・資金も別�
 
 1. **期待を変える。** 計画に使うのは 11 年年率 21% ではなく、凍結ルールのこれからの期間の実績。
 2. **本当に未使用の時間を積む。** 2021–2025 も 2026-01〜08 も、もう選定か評価に使っている。本体は凍結したルールをデモ／ライブで前に進めること。セル収益を残して公式 PBO を出すのは診断であり、年率は増えない。
-3. **足すなら別ファミリだけ。** 同じ USD トレンドの二階建てや、落ちた EURUSD H1 平均回帰の再試行はしない。仕様を先に書き、学習と lockbox を一度だけ測り、H4 3 本＋衛星 1% の合成 DD が 15% を超えず悪化もしないこと。
+3. **足すなら別ファミリの、まだピンしていない仕様だけ。** 同じ USD トレンドの二階建てや、衛星として落ちた EURUSD H1 平均回帰の再試行はしない。H1 チャネル抜けは H4 ドンチャンと同じファミリ。仕様を先に書き、学習と lockbox を一度だけ測り、H4 3 本＋衛星 1% の合成 DD が 15% を超えず悪化もしないこと。ファミリ単位ではなく仕様単位で落とす。一覧は `app/strategy/cores/README.md`。
 
 診断の数値と F1–F5 は `app/strategy/cores/donchian/README.md` と `reports/overfit_adopted.md`。再計算は `python -m strategy.cores.donchian.backtest.eval_overfit`。新規ペア探索だけ `--compact`（90 セル）。これは手法の点検であり、売買助言ではありません。
+
+## 研究コアの状態（仕様単位）
+
+ライブは H4 ドンチャン 3 本だけ。他は YAML `false`。つぶした単位と数字の窓は `app/strategy/cores/README.md`。
+
+| 仕様 | 判定 |
+|---|---|
+| H4 ドンチャン 3 本 | ライブ凍結（11.66 年 PF 1.45、合成 DD 12.48%） |
+| EURUSD H1 RSI フェード | 衛星 DROP。スタンドアロンは未ピン |
+| 日足 BB v4 | Explore DROP |
+| EURUSD H1 ダマシ拒否 | 衛星 DROP（lockbox PF 0.82） |
+| H1 20 本チャネル | 未ピン（EURUSD/GBP の 2021–2025 PF&lt;1） |
+| 4H スクイーズ抜け | Explore DROP |
+
+夜の拒否リスト（`python -m account.veto`）は通知だけ。シグナルは切らない。年率は増えない。
 
 ## 構成
 
@@ -165,8 +180,8 @@ python run.py --offline --serve   # http://127.0.0.1:18080  (run status + propos
 # 配管確認（合成データ。成績評価には使わない）
 python -m account.backtest.run_backtest --strategy donchian --synthetic
 
-# OANDA Practice 接続テスト（参照のみ。発注しない）
-# export OANDA_API_TOKEN=...
+# デモ会場の接続テスト（参照のみ。発注しない。会場は fxcm_demo）
+# export FXCM_API_TOKEN=...
 # python -m account.venues
 
 python -m pytest -q

@@ -7,6 +7,9 @@ cores:
   confluence: false
   eurusd_h1_range: false
   eurusd_h1_breakout_reject: false
+  bb_squeeze_pivot: false
+  mtf_bb_pivot: false
+  h1_donchian: false
 
 donchian:
   length: 30
@@ -83,6 +86,28 @@ eurusd_h1_breakout_reject:
   adx_len: 14
   h4_adx_max: 20.0
   max_hold_bars: 20
+
+bb_squeeze_pivot:
+  bb_len: 20
+  bb_k: 2.0
+  squeeze_lookback: 20
+  max_hold_bars: 72
+
+mtf_bb_pivot:
+  require_monthly: false
+  require_h4_bounce: false
+  require_h1_bb: false
+  once_per_stretch: true
+  daily_bb_k: 2.0
+  daily_stop_k: 2.5
+  max_hold_bars: 48
+
+h1_donchian:
+  length: 20
+  atr_mult: 2.5
+  use_adx_filter: false
+  use_atr_filter: false
+  partial_frac: 0.0
 
 walkforward:
   train_years: 3

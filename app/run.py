@@ -12,6 +12,8 @@ from paths import boot
 boot()
 
 from account.propose import propose, risk_pct_for  # noqa: E402
+from account.books import load_venues  # noqa: E402
+from account.veto import VetoDedup, evaluate, format_alert, veto_from_cfg  # noqa: E402
 from account.settings import (  # noqa: E402
     kit_data_dir,
     kit_params_dir,
@@ -38,6 +40,28 @@ def _log(msg: str) -> None:
 
 def _status(out_dir: Path, action: str, state: str, message: str = "") -> None:
     record_status("app", action, state, message, out_dir=out_dir)
+
+
+def _emit_veto(cfg: dict, out_dir: Path, dedup: VetoDedup, *, spread_pips: float | None = None) -> None:
+    """Telegram only when the reject list fires. Does not change signals."""
+    from datetime import datetime, timezone
+
+    from output.telegram import send_message
+
+    now = datetime.now(timezone.utc)
+    halted = any(v.halted for v in load_venues(cfg).values())
+    result = evaluate(
+        now,
+        spread_pips=spread_pips,
+        venue_halted=halted,
+        cfg=veto_from_cfg(cfg),
+    )
+    if not dedup.should_send(result):
+        return
+    text = format_alert(result, now)
+    _log(text.replace("\n", " | "))
+    record_status("account", "veto", "ok", result.signature, out_dir=out_dir)
+    send_message(text, cfg)
 
 
 def collect_proposals(
@@ -117,6 +141,7 @@ def watch_loop(
     sleep = sleeper or __import__("time").sleep
     last_bars: dict[str, str] = {}
     last_flags: dict[str, bool] = {}
+    veto_dedup = VetoDedup()
     _log("watch started (signals only, no orders)")
     _status(out_dir, "watch", "started", ",".join(symbols))
     while True:
@@ -161,6 +186,7 @@ def watch_loop(
                     _status(out_dir, "watch", "ok", f"published {len(snaps)} rows")
                 else:
                     _log("no new H4 bar yet")
+            _emit_veto(cfg, out_dir, veto_dedup)
         except KeyboardInterrupt:
             _log("stopped")
             _status(out_dir, "watch", "ok", "stopped")
@@ -252,6 +278,7 @@ def main(argv: list[str] | None = None) -> int:
                 serve_http=serve_http,
                 on_cores_change=hook,
             )
+            _emit_veto(cfg, out_dir, VetoDedup())
         return _hold_server(serve_http)
     return watch_loop(
         symbols,

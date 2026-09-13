@@ -36,6 +36,36 @@ def atr(df: pd.DataFrame, length: int = 14) -> pd.Series:
     return rma(true_range(df), length)
 
 
+def macd(
+    close: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    line = ema(close, fast) - ema(close, slow)
+    sig = ema(line, signal)
+    return line, sig, line - sig
+
+
+def bollinger(
+    close: pd.Series, length: int = 20, k: float = 2.0
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    mid = sma(close, length)
+    sd = close.rolling(length, min_periods=length).std(ddof=0)
+    return mid, mid + k * sd, mid - k * sd
+
+
+def floor_pivots(df: pd.DataFrame) -> tuple[pd.Series, pd.Series, pd.Series, pd.Series, pd.Series]:
+    """Classic floor pivots from the previous bar's H/L/C (no lookahead)."""
+    h = df["high"].shift(1)
+    low = df["low"].shift(1)
+    c = df["close"].shift(1)
+    p = (h + low + c) / 3.0
+    r1 = 2.0 * p - low
+    s1 = 2.0 * p - h
+    span = h - low
+    r2 = p + span
+    s2 = p - span
+    return p, r1, s1, r2, s2
+
+
 def rsi(close: pd.Series, length: int = 14) -> pd.Series:
     """Wilder RSI (Pine `ta.rsi`). Loss=0 with gain>0 is 100."""
     delta = close.diff()

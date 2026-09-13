@@ -18,8 +18,8 @@ Shorter bars raise round-trip cost as a fraction of 1R.
 - Source: Dukascopy **H1 BID**, resampled to H4 (`label/closed=left`). Weekend UTC Sat/Sun skipped.
 - M15 needs a separate M5/M15 CSV. Do not resample H1 down.
 - Signals on the **closed** bar; `account.engine` fills the **next open** with half-spread + slip.
-- Default cost: 1 pip + 0.2 slip. If a short-TF idea passes lockbox, re-run at 1 + 0.4 before adopting.
-- Volume is tick volume. RVOL is a weak participation filter here (already failed the H4 book DD gate).
+- Default cost: 1 pip + 0.2 slip. Short-TF ideas: also report 1 + 0.4. Frozen improve: re-run the tighter cost before adopting onto a pinned book.
+- Volume is tick volume. RVOL as a **Donchian overlay** failed that book's DD gate; it may still be a feature in Explore.
 
 ## Pips
 
@@ -34,9 +34,9 @@ Stop distance in price → size via `position_units`. Do not mix pip conventions
 
 | TF | Cost drag | When to use |
 |---|---|---|
-| H4 | Lowest vs 1R on this book | Live Donchian engine |
-| H1 | Medium | Research satellites; CSV already on disk |
-| M15/M5 | Highest | Only if the **same** rule already passed H1 lockbox + add-on |
+| H4 | Lowest vs 1R on the live Donchian book | Live engine; also valid for a new H4 core |
+| H1 | Medium | Explore cores; CSV already on disk |
+| M15/M5 | Highest | Explore allowed (need M5/M15 CSV). Frozen improve on a pinned H1 rule: M15 of the **same** rule is a post-look tweak — do not. |
 
 H4 1 pip is not valid for M15 GBPUSD. EURUSD is the least-bad short-TF pair on spread, not an edge by itself.
 
