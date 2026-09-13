@@ -4,6 +4,8 @@ from .cores.confluence import ConfluenceParams, ConfluenceStrategy
 from .cores.donchian import DonchianParams, DonchianStrategy
 from .cores.ema_atr import EmaAtrStrategy
 from .cores.engulfing_rvol import EngulfingParams, EngulfingRvolStrategy
+from .cores.eurusd_h1_breakout_reject import EurusdH1RejectParams, EurusdH1RejectStrategy
+from .cores.eurusd_h1_range import EurusdH1RangeParams, EurusdH1RangeStrategy
 from .cores.killzone import KillZoneParams, KillZoneStrategy
 
 STRATEGIES = {
@@ -12,6 +14,8 @@ STRATEGIES = {
     "engulfing": EngulfingRvolStrategy,
     "killzone": KillZoneStrategy,
     "confluence": ConfluenceStrategy,
+    "eurusd_h1_range": EurusdH1RangeStrategy,
+    "eurusd_h1_breakout_reject": EurusdH1RejectStrategy,
 }
 
 DEFAULT_CORE = "donchian"
@@ -68,6 +72,10 @@ def build_strategy(name: str, cfg: dict, **overrides):
             killzone=KillZoneParams(**_drop_none(cfg.get("killzone", {}))),
         )
         return cls(params)
+    if name == "eurusd_h1_range":
+        return cls(EurusdH1RangeParams.from_dict({**section, **overrides}))
+    if name == "eurusd_h1_breakout_reject":
+        return cls(EurusdH1RejectParams.from_dict({**section, **overrides}))
     section.update(overrides)
     return cls(**_drop_none(section))
 
@@ -84,4 +92,6 @@ __all__ = [
     "EmaAtrStrategy",
     "EngulfingRvolStrategy",
     "KillZoneStrategy",
+    "EurusdH1RangeStrategy",
+    "EurusdH1RejectStrategy",
 ]

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from feed.download import parse_cli_symbols
-from feed.pairs import CANDIDATES, RECOMMENDED
+from feed.pairs import CANDIDATES, RECOMMENDED, quote_currency
 
 
 def test_download_defaults_to_compared_pairs():
@@ -18,3 +18,9 @@ def test_download_symbol_selects_one_pair():
 
 def test_download_symbols_overrides_symbol():
     assert parse_cli_symbols("EURUSD", "gbpusd, nzdusd") == ["GBPUSD", "NZDUSD"]
+
+
+def test_quote_currency_for_adopted_pairs():
+    assert quote_currency("USDJPY") == "JPY"
+    assert quote_currency("GBPUSD") == "USD"
+    assert quote_currency("USDCAD") == "CAD"

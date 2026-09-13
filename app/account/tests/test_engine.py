@@ -67,6 +67,24 @@ def test_same_bar_stop_uses_stop_not_close():
     assert trades.iloc[0]["exit"] <= 1.20 - 0.001 + 1e-9
 
 
+def test_max_hold_exits_next_open():
+    df = _ohlcv(10, freq="1h", price=1.10)
+    df["signal"] = 0
+    df["stop_dist"] = 0.05
+    df["atr"] = 0.0004
+    df["max_hold_bars"] = 3
+    df.iloc[0, df.columns.get_loc("signal")] = 1
+    cfg = EngineConfig(
+        cost=CostConfig(spread_pips=0.0, slippage_pips=0.0),
+        risk=RiskConfig(max_trades_per_day=5, max_consecutive_losses=10),
+    )
+    _, trades = run_backtest(df, cfg)
+    assert len(trades) == 1
+    assert trades.iloc[0]["exit_reason"] == "signal_exit"
+    assert trades.iloc[0]["entry_time"] == df.index[1]
+    assert trades.iloc[0]["exit_time"] == df.index[5]
+
+
 def test_daily_halt_after_three_losses():
     n = 20
     df = _ohlcv(n, freq="1h", price=1.10)

@@ -31,7 +31,7 @@ class SignalSnapshot(TypedDict, total=False):
 
 
 class Proposal(SignalSnapshot, total=False):
-    """Account overlay: estimated next-bar fill and size. Not an order."""
+    """Account overlay: estimated next-bar fill, size, and book ids. Not an order."""
 
     risk_pct: float
     equity: float
@@ -41,6 +41,12 @@ class Proposal(SignalSnapshot, total=False):
     risk_amount: float | None
     spread_pips: float
     slippage_pips: float
+    venue_id: str
+    venue_kind: str
+    connector: str
+    account_currency: str
+    sleeve_id: str
+    stacking: dict[str, Any]
 
 
 class StatusEvent(TypedDict, total=False):

@@ -8,7 +8,7 @@ Donchian の最適化・オーバーレイ評価は `strategy/cores/donchian/bac
 |---|---|
 | `eval_alts.py` | ema_atr / engulfing / confluence を 11年 H4 でドンチャンと比較 |
 | `walkforward.py` | `--strategy` で任意コアのウォークフォワード |
-| `__main__.py` | `python -m strategy.backtest` → 採用ドンチャンの `optimize_pairs` |
+| `__main__.py` | `python -m strategy.backtest` → 採用ドンチャンの `optimize_pairs`。新規ペアは `--compact`（90セル）。USDJPY pin は `--force` なしでは上書きしない |
 
 ```bash
 $env:PYTHONPATH="app"
