@@ -51,9 +51,9 @@ venues:
     lot_step: 0.01
     min_lot: 0.01
     halted: false
-    # Demo login shown as 03534103. REST tokens are dead. ForexConnect uses env
-    # FXCM_USER / FXCM_PASSWORD (not YAML). python -m account.venues  (read-only)
-    account_id: "03534103"
+    # Demo display 03534339 (ForexConnect id 3534339). REST tokens are dead.
+    # Login: env FXCM_USER / FXCM_PASSWORD. python -m account.venues  (read-only)
+    account_id: "03534339"
 
 sleeves:
   donchian_h4:

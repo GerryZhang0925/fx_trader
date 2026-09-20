@@ -80,7 +80,12 @@ def main():
             ):
                 acc = row
         if wanted and acc is None:
-            print("account %s is not in the login's account list" % wanted, file=sys.stderr)
+            have = ", ".join(ids) if ids else "(none)"
+            print(
+                "account %s is not in the login's account list (have: %s)"
+                % (wanted, have),
+                file=sys.stderr,
+            )
             return 1
         if acc is None:
             acc = accounts[0]

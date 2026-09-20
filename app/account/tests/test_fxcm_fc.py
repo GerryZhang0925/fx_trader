@@ -102,7 +102,7 @@ def test_unknown_account_id_rejected():
         account_id="999",
         session_factory=FakeFx,
     )
-    with pytest.raises(FxcmFcError, match="not in the login"):
+    with pytest.raises(FxcmFcError, match="have: 03534103"):
         client.ping()
 
 
@@ -110,6 +110,24 @@ def test_snapshot_matches_leading_zero_account():
     fx = FakeFx()
     info = snapshot_from_session(fx, "3534103", DEFAULT_URL)
     assert info["account_id"] == "03534103"
+
+
+def test_cli_first_ignores_yaml_account(monkeypatch, capsys):
+    from account.venues.fxcm_fc import main
+
+    monkeypatch.setenv("FXCM_USER", "u")
+    monkeypatch.setenv("FXCM_PASSWORD", "p")
+
+    def fake_connect(cfg, *, environ=None, session_factory=None):
+        return FxcmForexConnect(
+            user="u", password="p", account_id="03534103", session_factory=FakeFx
+        )
+
+    monkeypatch.setattr("account.venues.fxcm_fc.connect_from_env", fake_connect)
+    assert main(["--first"]) == 0
+    out = capsys.readouterr().out
+    assert "03534103" in out
+    assert "Read-only ping" in out
 
 
 def test_cli_missing_creds(monkeypatch, capsys):

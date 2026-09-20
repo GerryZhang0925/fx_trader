@@ -162,7 +162,10 @@ def snapshot_from_session(fx, account_id: str | None, host: str) -> dict:
     if wanted:
         acc = next((a for a in accounts if _same_account(str(_attr(a, "account_id", "AccountID") or ""), wanted) or _same_account(str(_attr(a, "account_name", "AccountName") or ""), wanted)), None)
         if acc is None:
-            raise FxcmFcError(f"account {wanted} is not in the login's account list")
+            have = ", ".join(ids) if ids else "(none)"
+            raise FxcmFcError(
+                f"account {wanted} is not in the login's account list (have: {have})"
+            )
     else:
         acc = accounts[0]
     aid = str(_attr(acc, "account_id", "AccountID") or wanted)
@@ -283,6 +286,8 @@ class FxcmForexConnect:
         env["FXCM_CONNECTION"] = self.connection
         if self.account_id:
             env["FXCM_ACCOUNT_ID"] = self.account_id
+        else:
+            env.pop("FXCM_ACCOUNT_ID", None)
         try:
             out = subprocess.run(
                 [python_exe, str(PROBE)],
@@ -335,6 +340,11 @@ def main(argv: list[str] | None = None) -> int:
         description="FXCM ForexConnect demo ping (accounts/trades). No orders."
     )
     p.add_argument("--account", default=None, help="Override FXCM_ACCOUNT_ID")
+    p.add_argument(
+        "--first",
+        action="store_true",
+        help="Use the first account on this login (ignore YAML account_id)",
+    )
     args = p.parse_args(argv)
     cfg = load_config()
     try:
@@ -342,7 +352,9 @@ def main(argv: list[str] | None = None) -> int:
     except ValueError as exc:
         print(exc, flush=True)
         return 2
-    if args.account:
+    if args.first:
+        client.account_id = None
+    elif args.account:
         client.account_id = str(args.account).strip()
     try:
         with tracked("account", "fxcm_fc_ping", message=client.account_id or "demo"):
