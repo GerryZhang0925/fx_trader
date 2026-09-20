@@ -37,6 +37,13 @@ def test_missing_token():
         connect_from_env(environ={})
 
 
+def test_cli_reports_rest_deprecated():
+    from account.venues.fxcm import REST_DEPRECATED, main
+
+    assert main([]) == 2
+    assert "deprecated" in REST_DEPRECATED.lower()
+
+
 def test_ping_reads_accounts_and_positions():
     calls: list[str] = []
 

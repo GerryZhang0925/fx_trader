@@ -1,4 +1,4 @@
-"""FXCM REST demo — read-only. Socket.IO sid + GET snapshot. No orders."""
+"""FXCM REST demo client (deprecated). Socket.IO + token path no longer works."""
 
 from __future__ import annotations
 
@@ -10,6 +10,11 @@ from urllib import error, parse, request
 DEMO_HOST = "https://api-demo.fxcm.com"
 TOKEN_ENV = ("FXCM_API_TOKEN", "FXCM_ACCESS_TOKEN")
 ACCOUNT_ENV = "FXCM_ACCOUNT_ID"
+REST_DEPRECATED = (
+    "FXCM REST API tokens and fxcmpy are deprecated and will not work "
+    "(FXCM support). Trading Station 3 has no Token Management. "
+    "This kit does not ping that path. run.py still places no orders."
+)
 
 
 class FxcmError(RuntimeError):
@@ -108,7 +113,7 @@ class FxcmDemo:
         self.token = str(self.token or "").strip()
         if not self.token:
             raise ValueError(
-                "missing FXCM_API_TOKEN (Trading Station → User Account → Token Management)"
+                "missing FXCM_API_TOKEN; FXCM REST tokens are deprecated and will not work"
             )
         host = str(self.host or DEMO_HOST).rstrip("/")
         if host != DEMO_HOST:
@@ -293,32 +298,14 @@ def _print_ping(info: dict) -> None:
 def main(argv: list[str] | None = None) -> int:
     import argparse
 
-    from account.settings import load_config
-    from output.status import tracked
-
     p = argparse.ArgumentParser(
-        description="Ping FXCM demo REST (socket sid + GET accounts). No orders."
+        description="FXCM REST demo ping is deprecated. No orders."
     )
-    p.add_argument("--account", default=None, help="Override FXCM_ACCOUNT_ID")
+    p.add_argument("--account", default=None, help="Ignored; REST tokens do not work")
     p.add_argument("--timeout", type=float, default=15.0)
-    args = p.parse_args(argv)
-    cfg = load_config()
-    try:
-        client = connect_from_env(cfg)
-    except ValueError as exc:
-        print(exc, flush=True)
-        return 2
-    if args.account:
-        client.account_id = str(args.account).strip()
-    client.timeout = float(args.timeout)
-    try:
-        with tracked("account", "fxcm_ping", message=client.account_id or "demo"):
-            info = client.ping()
-    except FxcmError as exc:
-        print(exc, flush=True)
-        return 1
-    _print_ping(info)
-    return 0
+    p.parse_args(argv)
+    print(REST_DEPRECATED, flush=True)
+    return 2
 
 
 if __name__ == "__main__":
