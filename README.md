@@ -180,8 +180,7 @@ python run.py --offline --serve   # http://127.0.0.1:18080  (run status + propos
 # 配管確認（合成データ。成績評価には使わない）
 python -m account.backtest.run_backtest --strategy donchian --synthetic
 
-# デモ会場の接続テスト（参照のみ。発注しない。会場は fxcm_demo）
-# export FXCM_API_TOKEN=...
+# デモ会場は fxcm_demo。REST は廃止。ForexConnect は FXCM_USER / FXCM_PASSWORD（読み取りのみ）。
 # python -m account.venues
 
 python -m pytest -q

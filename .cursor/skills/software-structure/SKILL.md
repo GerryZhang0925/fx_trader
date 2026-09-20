@@ -21,7 +21,7 @@ The top-level app calls modules in order. Modules do not import each other (back
 4. **Account** — `app/account/` is one module with three jobs (see `account/README.md`):
    - Research PnL: next-bar engine (`engine.py`) and overlay (`propose.py`). **Adopted fill math stays frozen.**
    - Book: venue account (kind + connector + login + currency + lot spec) and sleeve (capital slice). `books.py` `money.py` `intent.py`.
-- Venue adapters: named by `connector`. Demo venue in the book is `fxcm_demo` (read-only, `python -m account.venues`). `oanda_practice` is off. `run.py` must not place orders.
+- Venue adapters: named by `connector`. Demo venue in the book is `fxcm_demo` (ForexConnect read-only, `python -m account.venues`). REST/fxcmpy is dead. `oanda_practice` is off. `run.py` must not place orders.
 5. **Output** — `app/output/` console, JSON, Telegram Bot API, local HTML on 127.0.0.1. Halt *messages* may originate here; halt *state* is the venue account. No orders.
 6. **Contracts** — `app/contracts.py` documents dict shapes.
 
@@ -48,6 +48,6 @@ Demo timing checks: compare upcoming `entry_time` (next H4 open, UTC) to demo ti
 - JSON reports use envelope `id`, `type`, `api_version`, `time`, `data`.
 - Run status is `reports/status.jsonl` (append-only). `output/web.py` renders it on the local page. Do not add a dashboard pipeline module.
 - Webhooks and Telegram are outbound. A local HTML page on 127.0.0.1 may toggle `reports/cores.json` (core ON/OFF). Do not add login, order tickets, or a public bind.
-- Secrets only via env (`FX_TRADER_WEBHOOK_SECRET`, `TELEGRAM_BOT_TOKEN`, `OANDA_API_TOKEN`, `FXCM_API_TOKEN`); never commit them.
+- Secrets only via env (`FX_TRADER_WEBHOOK_SECRET`, `TELEGRAM_BOT_TOKEN`, `OANDA_API_TOKEN`, `FXCM_USER`, `FXCM_PASSWORD`); never commit them. REST `FXCM_API_TOKEN` is deprecated.
 - Tests cover formulas and rendering, not live URLs.
 - Order of venue work: paper state matches engine → demo **read** → demo **write**. Live last. Do not cut H4 5% to fund a satellite sleeve.

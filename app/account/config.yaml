@@ -51,8 +51,8 @@ venues:
     lot_step: 0.01
     min_lot: 0.01
     halted: false
-    # Demo login shown as 03534103. Token: env FXCM_API_TOKEN only.
-    # python -m account.venues  (socket sid + GET snapshot, no orders)
+    # Demo login shown as 03534103. REST tokens are dead. ForexConnect uses env
+    # FXCM_USER / FXCM_PASSWORD (not YAML). python -m account.venues  (read-only)
     account_id: "03534103"
 
 sleeves:

@@ -17,7 +17,7 @@ Pipeline stays **feed → strategy → account → output**. Account is one modu
 |---|---|---|---|
 | 研究 PnL | 確定バーで判断、次バー始値＋半スプレッド＋0.2 slip。サイズは従来どおり `units = risk / stop_dist` | `engine.py` `risk.py` `metrics.py` `backtest/` | **採点式は凍らせる**（採用レポートと一致させる） |
 | ブック | 会場口座・スリーブ・スタッキング・証拠金通貨・ロット刻み | `books.py` `money.py` `intent.py` | 提案に id を載せる。コネクタはまだ呼ばない |
-| 会場アダプタ | デモ／リアルの参照と発注 | `venues/fxcm.py`（**GET のみ**）。`oanda.py` はブックから外した | `run.py` からは呼ばない。`python -m account.venues` |
+| 会場アダプタ | デモ／リアルの参照と発注 | `venues/fxcm_fc.py`（ForexConnect **読み取りのみ**）。`fxcm.py` REST は廃止。`oanda.py` はブックから外した | `run.py` からは呼ばない。`python -m account.venues` |
 
 ## 会場口座とスリーブ
 
@@ -50,17 +50,16 @@ Pipeline stays **feed → strategy → account → output**. Account is one modu
 
 ## FXCM demo
 
-デモ会場 `fxcm_demo`（`kind: demo`, `connector: fxcm_demo`）。ホストは `https://api-demo.fxcm.com` のみ。HTTP の前に Socket.IO の `sid` が要る（`Authorization: Bearer {sid}{token}`）。発注エンドポイントは実装していない。`oanda_practice` はブックから外した。
-
-Trading Station Web 3.0 には Token Management が無い。40 桁 hex が取れたら環境変数だけに入れる。YAML の `account_id` はデモ表示番号（`03534103`）。トークンは書かない。
+デモ会場 `fxcm_demo` はブックに残している。**REST / fxcmpy トークンは廃止**。代わりに ForexConnect のデモログイン（`www.fxcorporate.com/Hosts.jsp` / `Demo`）を読む。パスワードは YAML に書かない。
 
 ```bash
-export FXCM_API_TOKEN="..."           # 40 桁 hex。YAML に書かない
-export PYTHONPATH=app
-python -m account.venues              # sid + 残高・建玉の GET。注文しない
+$env:PYTHONPATH="app"
+$env:FXCM_USER="..."          # Trading Station のデモユーザー
+$env:FXCM_PASSWORD="..."
+python -m account.venues      # 口座・建玉の読み取り。注文しない
 ```
 
-採用ドンチャンのスリーブは `paper_research` のまま（研究エンジンの次バー）。デモで 11 年バックテストはしない。`run.py` は発注しない。
+PyPI の `forexconnect` は Windows で Python 3.5–3.7 のみ。キットは 3.11+ なので、3.7 があれば `FXCM_FC_PYTHON` にその interpreter を渡す。FIX（£5,000）と Java API は使わない。YAML の `account_id` はデモ表示番号（`03534103`）で、接続鍵ではない。採用スリーブは `paper_research`。`run.py` は発注しない。
 
 ## Config
 

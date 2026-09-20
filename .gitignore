@@ -10,6 +10,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 venv/
+.tools/
 .env
 .env.*
 *.pyc
