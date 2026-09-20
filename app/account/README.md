@@ -59,7 +59,7 @@ $env:FXCM_PASSWORD="..."
 python -m account.venues      # 口座・建玉の読み取り。注文しない
 ```
 
-PyPI の `forexconnect` は Windows で Python 3.5–3.7 のみ。キットは 3.11+ なので、3.7 があれば `FXCM_FC_PYTHON` にその interpreter を渡す。FIX（£5,000）と Java API は使わない。YAML の `account_id` はデモ表示番号（`03534103`）で、接続鍵ではない。採用スリーブは `paper_research`。`run.py` は発注しない。
+PyPI の `forexconnect` は Windows で Python 3.5–3.7 のみ。キットは 3.11+ なので、3.7 があれば `FXCM_FC_PYTHON` にその interpreter を渡す。FIX（£5,000）と Java API は使わない。YAML の `account_id` はデモ表示番号（`03534339`）で、接続鍵ではない。採用スリーブは `paper_research`。`run.py` は発注しない。
 
 ## Config
 
